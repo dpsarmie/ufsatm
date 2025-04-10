@@ -924,6 +924,44 @@ module fv3atm_cap_mod
 !-- set up output forecast time if output_fh is specified
     if (noutput_fh > 0 ) then
 !--- use output_fh to sepcify output forecast time
+      call OutputHoursSetup(noutput_fh)
+    endif
+    if(mype==0) print *,'output_fh=',output_fh(1:size(output_fh)),'lflname_fulltime=',lflname_fulltime
+
+    if ( quilting ) then
+      do i=1, write_groups
+        call ESMF_InfoGetFromHost(wrtState(i), info=info, rc=rc)
+        if (ESMF_LogFoundError(rcToCheck=rc,  msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+        call ESMF_InfoSet(info, key="output_fh", values=output_fh, rc=rc)
+        if (ESMF_LogFoundError(rcToCheck=rc,  msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+      enddo
+    endif
+
+    ! --- advertise Fields in importState and exportState -------------------
+
+! call fcst Initialize (advertise phase)
+    call ESMF_GridCompInitialize(fcstComp, importState=importState, exportState=exportState, &
+                                 clock=clock, phase=2, userRc=urc, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+
+    if (ESMF_LogFoundError(rcToCheck=urc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+    if(write_runtimelog .and. lprint) print *,'in fv3_cap, init time=',MPI_Wtime()-timeis,mype
+!-----------------------------------------------------------------------
+!
+  end subroutine InitializeAdvertise
+
+!-----------------------------------------------------------------------------
+
+  subroutine OutputHoursSetup(noutput_fh)
+    integer                                    :: rc, ist, i
+    integer                                    :: noutput_fh, nfh
+    logical                                    :: loutput_fh, lfreq
+    real                                       :: output_startfh, outputfh, outputfh2(2)
+    real                                       :: nfhmax
+    type(ESMF_Config)                          :: cf
+    
+    !--- use output_fh to sepcify output forecast time
       loutput_fh = .true.
       lflname_fulltime = .false.
       if(noutput_fh == 1) then
@@ -994,33 +1032,14 @@ module fv3atm_cap_mod
           endif
         endif
       endif ! end loutput_fh
-    endif
-    if(mype==0) print *,'output_fh=',output_fh(1:size(output_fh)),'lflname_fulltime=',lflname_fulltime
 
-    if ( quilting ) then
-      do i=1, write_groups
-        call ESMF_InfoGetFromHost(wrtState(i), info=info, rc=rc)
-        if (ESMF_LogFoundError(rcToCheck=rc,  msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-        call ESMF_InfoSet(info, key="output_fh", values=output_fh, rc=rc)
-        if (ESMF_LogFoundError(rcToCheck=rc,  msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-      enddo
-    endif
-
-    ! --- advertise Fields in importState and exportState -------------------
-
-! call fcst Initialize (advertise phase)
-    call ESMF_GridCompInitialize(fcstComp, importState=importState, exportState=exportState, &
-                                 clock=clock, phase=2, userRc=urc, rc=rc)
-    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-
-    if (ESMF_LogFoundError(rcToCheck=urc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__, rcToReturn=rc)) return
-
-    if(write_runtimelog .and. lprint) print *,'in fv3_cap, init time=',MPI_Wtime()-timeis,mype
 !-----------------------------------------------------------------------
 !
-  end subroutine InitializeAdvertise
+  end subroutine OutputHoursSetup
 
 !-----------------------------------------------------------------------------
+
+
 
   subroutine InitializeRealize(gcomp, rc)
     type(ESMF_GridComp)  :: gcomp
