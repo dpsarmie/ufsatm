@@ -705,8 +705,9 @@ subroutine atmos_model_init (Atmos, Time_init, Time, Time_step)
    Init_parm%restart         = Atm(mygrid)%flagstruct%warm_start
    Init_parm%hydrostatic     = Atm(mygrid)%flagstruct%hydrostatic
 
+   ! allocate required to work around GNU compiler bug 100886 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100886
    allocate(Init_parm%input_nml_file, mold=input_nml_file)
-   Init_parm%input_nml_file = input_nml_file
+   Init_parm%input_nml_file  => input_nml_file
    Init_parm%fn_nml='using internal file'
 
    call GFS_initialize (GFS_control, GFS_Statein, GFS_Stateout, GFS_Sfcprop, &
@@ -782,33 +783,7 @@ subroutine atmos_model_init (Atmos, Time_init, Time, Time_step)
    !--- set the initial diagnostic timestamp
    diag_time = Time
    call get_time (Atmos%Time - Atmos%Time_init, sec)
-   !--- Model should restart at the forecast hours that are multiples of fhzero.
-   !--- WARNING: For special cases that model needs to restart at non-multiple of fhzero
-   !--- the fields in first output files are not accumulated from the beginning of
-   !--- the bucket, but the restart time.
-   if( GFS_Control%fhzero_array(1) > 0. ) then
-     fhzero_loop: do i=1,size(GFS_Control%fhzero_array)
-       tmpflag_fhzero= .false.
-       if( GFS_Control%fhzero_array(i) > 0.) then
-         if( i == 1 ) then
-           if( sec <= GFS_Control%fhzero_fhour(i)*3600. ) tmpflag_fhzero = .true.
-         else if( i > 1 ) then
-           if( sec > GFS_Control%fhzero_fhour(i-1)*3600. .and. sec <=GFS_Control%fhzero_fhour(i)*3600. ) &
-             tmpflag_fhzero = .true.
-         endif
-         if( tmpflag_fhzero ) then
-           GFS_Control%fhzero = GFS_Control%fhzero_array(i)
-           if( GFS_Control%fhzero > 0) then
-             sec_lastfhzerofh = (int(sec/3600.)/int(GFS_Control%fhzero))*int(GFS_Control%fhzero)*3600
-           else
-             sec_lastfhzerofh = 0
-           endif
-         endif
-       endif
-     enddo fhzero_loop
-   else
-     sec_lastfhzerofh = 0
-   endif
+   call set_fhzero_loop(sec, sec_lastfhzerofh)
    if (mpp_pe() == mpp_root_pe()) print *,'in atmos_model, fhzero=',GFS_Control%fhzero, 'fhour=',sec/3600.,sec_lastfhzerofh/3600
 
    if (mod((sec-sec_lastfhzerofh),int(GFS_Control%fhzero*3600.)) /= 0) then
@@ -856,6 +831,41 @@ subroutine atmos_model_init (Atmos, Time_init, Time, Time_step)
 end subroutine atmos_model_init
 ! </SUBROUTINE>
 
+subroutine set_fhzero_loop(sec, sec_lastfhzerofh)
+
+   logical                      :: tmpflag_fhzero
+   integer                      :: i
+   integer, intent(inout)       :: sec, sec_lastfhzerofh
+
+   !--- Model should restart at the forecast hours that are multiples of fhzero.
+   !--- WARNING: For special cases that model needs to restart at non-multiple of fhzero
+   !--- the fields in first output files are not accumulated from the beginning of
+   !--- the bucket, but the restart time.
+   if( GFS_Control%fhzero_array(1) > 0. ) then
+     fhzero_loop: do i=1,size(GFS_Control%fhzero_array)
+       tmpflag_fhzero= .false.
+       if( GFS_Control%fhzero_array(i) > 0.) then
+         if( i == 1 ) then
+           if( sec <= GFS_Control%fhzero_fhour(i)*3600. ) tmpflag_fhzero = .true.
+         else if( i > 1 ) then
+           if( sec > GFS_Control%fhzero_fhour(i-1)*3600. .and. sec <=GFS_Control%fhzero_fhour(i)*3600. ) &
+             tmpflag_fhzero = .true.
+         endif
+         if( tmpflag_fhzero ) then
+           GFS_Control%fhzero = GFS_Control%fhzero_array(i)
+           if( GFS_Control%fhzero > 0) then
+             sec_lastfhzerofh = (int(sec/3600.)/int(GFS_Control%fhzero))*int(GFS_Control%fhzero)*3600
+           else
+             sec_lastfhzerofh = 0
+           endif
+         endif
+       endif
+     enddo fhzero_loop
+   else
+     sec_lastfhzerofh = 0
+   endif
+
+end subroutine set_fhzero_loop
 
 !#######################################################################
 ! <SUBROUTINE NAME="update_atmos_model_dynamics"
@@ -1026,29 +1036,7 @@ subroutine update_atmos_model_state (Atmos, rc)
     endif
 
     !---  find current fhzero
-    if( GFS_Control%fhzero_array(1) > 0. ) then
-      fhzero_loop: do i=1,size(GFS_Control%fhzero_array)
-        tmpflag_fhzero = .false.
-        if( GFS_Control%fhzero_array(i) > 0.) then
-          if( i == 1 ) then
-            if( seconds <= GFS_Control%fhzero_fhour(i)*3600. ) tmpflag_fhzero = .true.
-          else if( i > 1 ) then
-            if( seconds > GFS_Control%fhzero_fhour(i-1)*3600. .and. seconds <= GFS_Control%fhzero_fhour(i)*3600. ) &
-              tmpflag_fhzero = .true.
-          endif
-          if( tmpflag_fhzero) then
-            GFS_Control%fhzero = GFS_Control%fhzero_array(i)
-            if( GFS_Control%fhzero > 0) then
-              sec_lastfhzerofh = (int(seconds/3600.)/int(GFS_Control%fhzero))*int(GFS_Control%fhzero)*3600
-            else
-              sec_lastfhzerofh = 0
-            endif
-          endif
-        endif
-      enddo fhzero_loop
-    else
-      sec_lastfhzerofh = 0
-    endif
+    call set_fhzero_loop(seconds,sec_lastfhzerofh)
     if (mpp_pe() == mpp_root_pe()) print *,'in atmos_model update, fhzero=',GFS_Control%fhzero, 'fhour=',seconds/3600.,sec_lastfhzerofh/3600.
 
     if (nint(GFS_Control%fhzero) > 0) then

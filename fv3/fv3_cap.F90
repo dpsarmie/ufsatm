@@ -937,27 +937,9 @@ module fv3atm_cap_mod
           call ESMF_ConfigGetAttribute(CF,valueList=outputfh2,label='output_fh:', &
              count=noutput_fh, rc=rc)
           if(outputfh2(2) == -1) then
-            !--- output_hf is output frequency, the second item is -1
+            !--- output_fh is output frequency, the second item is -1
             lfreq = .true.
-            nfh = 0
-            if( nfhmax>output_startfh) nfh = nint((nfhmax-output_startfh)/outputfh2(1)) + 1
-            if( nfh > 0) then
-              allocate(output_fh(nfh))
-              if( output_startfh == 0) then
-                output_fh(1) = dt_atmos/3600.
-              else
-                output_fh(1) = output_startfh
-              endif
-              do i=2,nfh
-                output_fh(i) = (i-1)*outputfh2(1) + output_startfh
-                ! Except fh000, which is the first time output, if any other of the
-                ! output time is not integer hour, set lflname_fulltime to be true, so the
-                ! history file names will contain the full time stamp (HHH-MM-SS).
-                if(.not.lflname_fulltime) then
-                  if(mod(nint(output_fh(i)*3600.),3600) /= 0) lflname_fulltime = .true.
-                endif
-              enddo
-            endif
+            call OutputHours_FrequencyInput(nfhmax, output_startfh, outputfh2)
           endif
         endif
         if( noutput_fh /= 2 .or. .not. lfreq ) then
@@ -966,32 +948,7 @@ module fv3atm_cap_mod
           call ESMF_ConfigGetAttribute(CF,valueList=output_fh,label='output_fh:', &
              count=noutput_fh, rc=rc)
           if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-          if( output_startfh == 0) then
-            ! If the output time in output_fh array contains first time stamp output,
-            ! check the rest of output time, otherwise, check all the output time.
-            ! If any of them is not integer hour, the history file names will
-            ! contain the full time stamp (HHH-MM-SS)
-            ist = 1
-            if(output_fh(1)==0) then
-              output_fh(1) = dt_atmos/3600.
-              ist= 2
-            endif
-            do i=ist,noutput_fh
-              if(.not.lflname_fulltime) then
-                if(mod(nint(output_fh(i)*3600.),3600) /= 0) lflname_fulltime = .true.
-              endif
-            enddo
-          else
-            do i=1,noutput_fh
-              output_fh(i) = output_startfh + output_fh(i)
-              ! When output_startfh >0, check all the output time, if any of
-              ! them is not integer hour, set lflname_fulltime to be true. The
-              ! history file names will contain the full time stamp (HHH-MM-SS).
-              if(.not.lflname_fulltime) then
-                if(mod(nint(output_fh(i)*3600.),3600) /= 0) lflname_fulltime = .true.
-              endif
-            enddo
-          endif
+          call OutputHours_ArrayInput(noutput_fh,output_startfh)
         endif
       endif ! end loutput_fh
     endif
@@ -1024,6 +981,66 @@ module fv3atm_cap_mod
   end subroutine InitializeAdvertise
 
 !-----------------------------------------------------------------------------
+
+  subroutine OutputHours_FrequencyInput(nfhmax, output_startfh, outputfh2)
+    integer                   :: nfh, i
+    real, intent(inout)       :: nfhmax, output_startfh, outputfh2(2)
+
+    nfh = 0
+    if( nfhmax>output_startfh) nfh = nint((nfhmax-output_startfh)/outputfh2(1)) + 1
+    if( nfh > 0) then
+      allocate(output_fh(nfh))
+      if( output_startfh == 0) then
+        output_fh(1) = dt_atmos/3600.
+      else
+        output_fh(1) = output_startfh
+      endif
+      do i=2,nfh
+        output_fh(i) = (i-1)*outputfh2(1) + output_startfh
+        ! Except fh000, which is the first time output, if any other of the
+        ! output time is not integer hour, set lflname_fulltime to be true, so the
+        ! history file names will contain the full time stamp (HHH-MM-SS).
+        if(.not.lflname_fulltime) then
+          if(mod(nint(output_fh(i)*3600.),3600) /= 0) lflname_fulltime = .true.
+        endif
+      enddo
+    endif
+  end subroutine OutputHours_FrequencyInput
+
+  subroutine OutputHours_ArrayInput(noutput_fh,output_startfh)
+
+    integer                   :: ist, i
+    integer, intent(inout)    :: noutput_fh
+    real, intent(inout)       :: output_startfh
+  
+    if( output_startfh == 0) then
+      ! If the output time in output_fh array contains first time stamp output,
+      ! check the rest of output time, otherwise, check all the output time.
+      ! If any of them is not integer hour, the history file names will
+      ! contain the full time stamp (HHH-MM-SS)
+      ist = 1
+      if(output_fh(1)==0) then
+        output_fh(1) = dt_atmos/3600.
+        ist= 2
+      endif
+      do i=ist,noutput_fh
+        if(.not.lflname_fulltime) then
+          if(mod(nint(output_fh(i)*3600.),3600) /= 0) lflname_fulltime = .true.
+        endif
+      enddo
+    else
+      do i=1,noutput_fh
+        output_fh(i) = output_startfh + output_fh(i)
+        ! When output_startfh >0, check all the output time, if any of
+        ! them is not integer hour, set lflname_fulltime to be true. The
+        ! history file names will contain the full time stamp (HHH-MM-SS).
+        if(.not.lflname_fulltime) then
+          if(mod(nint(output_fh(i)*3600.),3600) /= 0) lflname_fulltime = .true.
+        endif
+      enddo
+    endif
+
+  end subroutine OutputHours_ArrayInput
 
   subroutine InitializeRealize(gcomp, rc)
     type(ESMF_GridComp)  :: gcomp
