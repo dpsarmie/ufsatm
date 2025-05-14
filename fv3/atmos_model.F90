@@ -1012,21 +1012,7 @@ subroutine update_atmos_model_state (Atmos, rc)
     if (ANY(nint(output_fh(:)*3600.0) == seconds) .or. (GFS_control%kdt == first_kdt)) then
       if (mpp_pe() == mpp_root_pe()) write(6,*) "---isec,seconds",isec,seconds
       time_int = real(isec)
-      if(Atmos%iau_offset > zero) then
-        if( time_int - Atmos%iau_offset*3600. > zero ) then
-          time_int = time_int - Atmos%iau_offset*3600.
-        else if(seconds == Atmos%iau_offset*3600) then
-          call get_time (Atmos%Time - diag_time_fhzero, isec_fhzero)
-          time_int = real(isec_fhzero)
-          if (mpp_pe() == mpp_root_pe()) write(6,*) "---iseczero",isec_fhzero
-        endif
-      endif
-      time_intfull = real(seconds)
-      if(Atmos%iau_offset > zero) then
-        if( time_intfull - Atmos%iau_offset*3600. > zero) then
-          time_intfull = time_intfull - Atmos%iau_offset*3600.
-        endif
-      endif
+      call InitTimeFromIAUOffset(Atmos, time_int, time_intfull, seconds)
       if (mpp_pe() == mpp_root_pe()) write(6,*) ' gfs diags time since last bucket empty: ',time_int/3600.,'hrs'
       call atmosphere_nggps_diag(Atmos%Time)
       call fv3atm_diag_output(Atmos%Time, GFS_Diag, Atm_block, GFS_control%nx, GFS_control%ny, &
@@ -1063,7 +1049,30 @@ subroutine update_atmos_model_state (Atmos, rc)
  end subroutine update_atmos_model_state
 ! </SUBROUTINE>
 
+ subroutine InitTimeFromIAUOffset(Atmos, time_int, time_intfull, seconds)
 
+   type (atmos_data_type),   intent(inout)  :: Atmos
+   real(kind=GFS_kind_phys), intent(inout)  :: time_int, time_intfull
+   integer,                  intent(inout)  :: seconds
+   integer,                                 :: isec_fhzero
+
+   if(Atmos%iau_offset > zero) then
+     if( time_int - Atmos%iau_offset*3600. > zero ) then
+       time_int = time_int - Atmos%iau_offset*3600.
+     else if(seconds == Atmos%iau_offset*3600) then
+       call get_time (Atmos%Time - diag_time_fhzero, isec_fhzero)
+       time_int = real(isec_fhzero)
+       if (mpp_pe() == mpp_root_pe()) write(6,*) "---iseczero",isec_fhzero
+     endif
+   endif
+   time_intfull = real(seconds)
+   if(Atmos%iau_offset > zero) then
+     if( time_intfull - Atmos%iau_offset*3600. > zero) then
+       time_intfull = time_intfull - Atmos%iau_offset*3600.
+     endif
+   endif
+
+ end subroutine InitTimeFromIAUOffset
 
 !#######################################################################
 ! <SUBROUTINE NAME="atmos_model_end">
