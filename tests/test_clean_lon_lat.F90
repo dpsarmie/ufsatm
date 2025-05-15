@@ -19,10 +19,8 @@ program test_clean_lon_lat
 
     ! Check results    
     if (abs(lon - expected_lons(i)) > 10e-6 .or. abs(lat - expected_lats(i)) > 10e-6) then
-      write(*,'(A,I2,A,F12.6,A,F12.6,A)') "Test ", i, ": clean_lon_lat(", lon, ", ", lat, ")" 
       stop i
     end if
-      write(*,'(A,F12.6,A,F12.6,I2)') "Passed with ", lon, ", ", lat, ")", i
   end do
   
 contains
