@@ -1,15 +1,20 @@
-!--------------- FV3 ATM solo model ----------------
-!
-!*** The FV3 atmosphere grid component nuopc cap
-!
-! Author:  Jun Wang@noaa.gov
-!
-! revision history
-! 11 Oct 2016: J. Wang          Initial code
-! 18 Apr 2017: J. Wang          set up fcst grid component and write grid components
-! 24 Jul 2017: J. Wang          initialization and time stepping changes for coupling
-! 02 Nov 2017: J. Wang          Use Gerhard's transferable RouteHandle
-!
+!> @file
+!> @brief The FV3 atmosphere grid component nuopc cap.
+!> @author Jun Wang @date 01/2017
+
+!> @brief The FV3 atmosphere grid component nuopc cap.
+!>
+!> FV3 ATM solo model
+!>
+!> ## Module History
+!> Date | Author | Modification
+!> -----|--------|-------------
+!> 11 Oct 2016 | J. Wang | Initial code
+!> 18 Apr 2017 | J. Wang | set up fcst grid component and write grid components
+!> 24 Jul 2017 | J. Wang | initialization and time stepping changes for coupling
+!> 02 Nov 2017 | J. Wang | Use Gerhard's transferable RouteHandle
+!>
+!> @author Jun Wang @date 01/2017
 
 module fv3atm_cap_mod
 
@@ -56,31 +61,50 @@ module fv3atm_cap_mod
 !
 !-----------------------------------------------------------------------
 !
-
+  !> forecast grid component
   type(ESMF_GridComp)                         :: fcstComp
+  !> forecast grid component's export state
   type(ESMF_State)                            :: fcstState
+  !> Array of forecast grid component's field bundles
   type(ESMF_FieldBundle), allocatable         :: fcstFB(:)
+
+  !> forecast grid component's PET list
   integer,dimension(:), allocatable           :: fcstPetList
+  !> number of field bundles in foreacst grid component's export state
   integer, save                               :: FBCount
 
+  !> Array of write grid components
   type(ESMF_GridComp),    allocatable         :: wrtComp(:)
+  !> Array of write component's import state
   type(ESMF_State),       allocatable         :: wrtState(:)
+  !> Array of write field bundles
   type(ESMF_FieldBundle), allocatable         :: wrtFB(:,:)
-
+  !> Array of route handles
   type(ESMF_RouteHandle), allocatable         :: routehandle(:,:)
+  !> Array of route handles used for grid redist-ing
   type(ESMF_RouteHandle), allocatable         :: gridRedistRH(:,:)
+  !> Array of source and destination grids, used for computing routehandles
   type(ESMF_Grid), allocatable                :: srcGrid(:,:), dstGrid(:,:)
-  logical, allocatable                        :: is_moving_FB(:)
 
+  !> Array of logical flags indicating which field bundles are 'moving' grid bundle
+  logical, allocatable                        :: is_moving_FB(:)
+  !> logical flag that controls memory profiling
   logical                                     :: profile_memory = .true.
+  !> logical flag that controls runtime logs
   logical                                     :: write_runtimelog = .false.
+  !> logical flag that controls debug prints, true on root task
   logical                                     :: lprint = .false.
+  !> 
   logical                                     :: sync_fcst_info_to_wgc = .false.
 
+  !> current rank
   integer                                     :: mype = -1
+  !> logical flag that controls debug prints
   integer                                     :: dbug = 0
+  !> Array of restart times (in seconds)
   integer                                     :: frestart(999) = -1
 
+  !> wall clock timers
   real(kind=8)                                :: timere, timep2re
 !-----------------------------------------------------------------------
 
@@ -90,6 +114,12 @@ module fv3atm_cap_mod
 !------------------- Solo fv3atm code starts here ----------------------
 !-----------------------------------------------------------------------
 
+  !> SetServices subroutine, register subroutines that are implemented in the NUOPC cap
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine SetServices(gcomp, rc)
 
     type(ESMF_GridComp)  :: gcomp
@@ -169,6 +199,12 @@ module fv3atm_cap_mod
   end subroutine SetServices
 
 !-----------------------------------------------------------------------------
+  !> The implementation of the Advertise subroutine, which is registered for the label_Advertise specialization. During this phase, all import and export fileds should be advertized.
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
 
   subroutine InitializeAdvertise(gcomp, rc)
 
@@ -1031,6 +1067,12 @@ module fv3atm_cap_mod
 
 !-----------------------------------------------------------------------------
 
+  !> Realize subroutine, which specializes label_RealizeProvided. During this phase, fields that were previously advertised should now be realized.
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine InitializeRealize(gcomp, rc)
     type(ESMF_GridComp)  :: gcomp
     integer, intent(out) :: rc
@@ -1067,7 +1109,12 @@ module fv3atm_cap_mod
   end subroutine InitializeRealize
 
 !-----------------------------------------------------------------------------
-
+  !> ModelAdvance subroutine, which specializes label_Advance
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine ModelAdvance(gcomp, rc)
 
     type(ESMF_GridComp)         :: gcomp
@@ -1096,7 +1143,12 @@ module fv3atm_cap_mod
   end subroutine ModelAdvance
 
 !-----------------------------------------------------------------------------
-
+  !> ModelAdvance_phase1 subroutine, which specializes label_Advance 'phase1'
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine ModelAdvance_phase1(gcomp, rc)
     type(ESMF_GridComp)         :: gcomp
     integer, intent(out)        :: rc
@@ -1151,7 +1203,12 @@ module fv3atm_cap_mod
   end subroutine ModelAdvance_phase1
 
 !-----------------------------------------------------------------------------
-
+  !> ModelAdvance_phase2 subroutine, which specializes label_Advance 'phase2'
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine ModelAdvance_phase2(gcomp, rc)
     type(ESMF_GridComp)         :: gcomp
     integer, intent(out)        :: rc
@@ -1311,7 +1368,12 @@ module fv3atm_cap_mod
   end subroutine ModelAdvance_phase2
 
 !-----------------------------------------------------------------------------
-
+  !> ModelSetRunClock subroutine, which specializes label_SetRunClock
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine ModelSetRunClock(gcomp, rc)
 
     type(ESMF_GridComp)         :: gcomp
@@ -1345,7 +1407,12 @@ module fv3atm_cap_mod
   end subroutine ModelSetRunClock
 
 !-----------------------------------------------------------------------------
-
+  !> fv3_checkimport subroutine, which specializes label_CheckImport
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine fv3_checkimport(gcomp, rc)
 
 !***  Check the import state fields
@@ -1436,7 +1503,12 @@ module fv3atm_cap_mod
   end subroutine fv3_checkimport
 
 !-----------------------------------------------------------------------------
-
+  !> TimestampExport_phase1 subroutine, which specializes label_TimestampExport
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine TimestampExport_phase1(gcomp, rc)
 
     ! input arguments
@@ -1466,7 +1538,12 @@ module fv3atm_cap_mod
   end subroutine TimestampExport_phase1
 
 !-----------------------------------------------------------------------------
-
+  !> ModelFinalize subroutine, which specializes label_Finalize
+  !>
+  !> @param[in] gcomp fv3atm grid component
+  !> @param[out] rc Return code.
+  !>
+  !> @author
   subroutine ModelFinalize(gcomp, rc)
 
     ! input arguments
