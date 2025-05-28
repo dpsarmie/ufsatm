@@ -55,7 +55,7 @@ if(OPENMP)
 endif()
 
 find_package(NetCDF 4.7.4 REQUIRED C Fortran)
-find_package(ESMF 8.3.0 MODULE REQUIRED)
+find_package(ESMF 8.3.0 CONFIG REQUIRED)
 find_package(FMS 2022.04 REQUIRED COMPONENTS R4 R8)
 if(32BIT)
   add_library(fms ALIAS FMS::fms_r4)
