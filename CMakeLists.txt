@@ -19,6 +19,7 @@ if(BUILD_CI_TESTING)
     project(ufsatm_fv3 VERSION 1.0 LANGUAGES C CXX Fortran)
     include(ci/CMakeLists.txt)
   endif()
+  include(ci/CMakeLists.txt)
 endif()
 
 # Set variables for all dycore build options in UFSATM.
