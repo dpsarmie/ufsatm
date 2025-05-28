@@ -6,6 +6,7 @@
 # Alex Richert, 6 Dec 2023
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules/Modules)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/fv3/atmos_cubed_sphere/cmake)
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   if(CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 9.0.0)
