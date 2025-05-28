@@ -116,21 +116,21 @@ jobs:
         git clone https://github.com/NOAA-EMC/CMakeModules
         git clone --recurse-submodules https://github.com/NOAA-PSL/stochastic_physics stochastic_physics_repo
 
-        echo "=== ESMF Environment Variables ==="
-        echo "esmf_ROOT: $esmf_ROOT"
-        echo "ESMF_ROOT: $ESMF_ROOT" 
-        echo "ESMFMKFILE: $ESMFMKFILE"
+        echo "=== Checking CCPP structure ==="
+        echo "CCPP at root:"
+        ls -la ${GITHUB_WORKSPACE}/fv3atm/ccpp/ | head -10 || echo "No ccpp at root"
         
-        # Check what Spack sets when loading esmf
-        echo -e "\n=== Spack ESMF settings ==="
-        spack load --sh esmf | grep -i esmf
+        echo -e "\nCCPP under fv3:"
+        ls -la ${GITHUB_WORKSPACE}/fv3atm/fv3/ccpp/ | head -10 || echo "No ccpp under fv3"
         
-        # See where Spack installed ESMF
-        ESMF_LOCATION=$(spack location -i esmf)
-        echo -e "\nESMF installed at: $ESMF_LOCATION"
+        echo -e "\nLooking for ccpp directories:"
+        find ${GITHUB_WORKSPACE}/fv3atm -type d -name "ccpp" -not -path "*/build/*" | head -5
         
-        # Check if cmake directory exists in ESMF installation
-        ls -la $ESMF_LOCATION/cmake/ 2>/dev/null || echo "No cmake directory in ESMF installation"
+        echo -e "\nLooking for ccpp_prebuild_config.py:"
+        find ${GITHUB_WORKSPACE}/fv3atm -name "ccpp_prebuild_config.py" -not -path "*/build/*" | head -5
+        
+        echo -e "\nChecking ccpp/config directory:"
+        ls -la ${GITHUB_WORKSPACE}/fv3atm/ccpp/config/ || echo "No ccpp/config directory"
         
         mkdir ${GITHUB_WORKSPACE}/build
         cd ${GITHUB_WORKSPACE}/build
