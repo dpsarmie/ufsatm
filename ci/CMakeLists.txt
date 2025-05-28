@@ -6,7 +6,12 @@
 # Alex Richert, 6 Dec 2023
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules/Modules)
-list(APPEND CMAKE_MODULE_PATH $ENV{esmf_ROOT}/cmake)
+# Switch to ESMF's cmake files. They have been removed from EMC's modules repo
+if(DEFINED ENV{ESMFMKFILE})
+  get_filename_component(TEMP_DIR $ENV{ESMFMKFILE} DIRECTORY)
+  get_filename_component(ESMF_ROOT ${TEMP_DIR} DIRECTORY)
+    list(APPEND CMAKE_MODULE_PATH ${ESMF_ROOT}/cmake)
+endif()
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   if(CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 9.0.0)
