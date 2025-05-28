@@ -6,7 +6,7 @@
 # Alex Richert, 6 Dec 2023
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules/Modules)
-#list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/fv3/atmos_cubed_sphere/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/fv3/atmos_cubed_sphere/cmake)
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
   if(CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 9.0.0)
@@ -55,7 +55,7 @@ if(OPENMP)
 endif()
 
 find_package(NetCDF 4.7.4 REQUIRED C Fortran)
-find_package(ESMF 8.3.0 CONFIG REQUIRED)
+find_package(ESMF 8.3.0 MODULE REQUIRED)
 find_package(FMS 2022.04 REQUIRED COMPONENTS R4 R8)
 if(32BIT)
   add_library(fms ALIAS FMS::fms_r4)
