@@ -15,7 +15,9 @@ endif()
 
 # Enable CI build & unit testing:
 if(BUILD_CI_TESTING)
-  project(ufsatm_fv3 VERSION 1.0 LANGUAGES C CXX Fortran)
+  if(FV3)
+    project(ufsatm_fv3 VERSION 1.0 LANGUAGES C CXX Fortran)
+  endif()
   include(ci/CMakeLists.txt)
 endif()
 
