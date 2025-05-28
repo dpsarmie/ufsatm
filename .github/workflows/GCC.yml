@@ -118,7 +118,7 @@ jobs:
         find ${GITHUB_WORKSPACE}/fv3atm -name "FindESMF.cmake" 2>/dev/null | grep -i esmf || echo "No FindESMF.cmake file"
         ls -la ${GITHUB_WORKSPACE}/fv3atm/CMakeModules/Modules/ | grep -i esmf || echo "No ESMF files found"
         env | grep -i esmf || echo "No ESMF vars found"
-        spack find -v esmp
+        spack find -v esmf
         spack location -i esmf
         mkdir ${GITHUB_WORKSPACE}/build
         cd ${GITHUB_WORKSPACE}/build
