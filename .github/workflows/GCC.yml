@@ -115,11 +115,6 @@ jobs:
         cd ${GITHUB_WORKSPACE}/fv3atm
         git clone https://github.com/NOAA-EMC/CMakeModules
         git clone --recurse-submodules https://github.com/NOAA-PSL/stochastic_physics stochastic_physics_repo
-        find ${GITHUB_WORKSPACE}/fv3atm -name "FindESMF.cmake" 2>/dev/null | grep -i esmf || echo "No FindESMF.cmake file"
-        ls -la ${GITHUB_WORKSPACE}/fv3atm/CMakeModules/Modules/ | grep -i esmf || echo "No ESMF files found"
-        env | grep -i esmf || echo "No ESMF vars found"
-        spack find -v esmf
-        spack location -i esmf
         mkdir ${GITHUB_WORKSPACE}/build
         cd ${GITHUB_WORKSPACE}/build
         export CC=mpicc
