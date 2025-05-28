@@ -115,6 +115,23 @@ jobs:
         cd ${GITHUB_WORKSPACE}/fv3atm
         git clone https://github.com/NOAA-EMC/CMakeModules
         git clone --recurse-submodules https://github.com/NOAA-PSL/stochastic_physics stochastic_physics_repo
+
+        echo "=== ESMF Environment Variables ==="
+        echo "esmf_ROOT: $esmf_ROOT"
+        echo "ESMF_ROOT: $ESMF_ROOT" 
+        echo "ESMFMKFILE: $ESMFMKFILE"
+        
+        # Check what Spack sets when loading esmf
+        echo -e "\n=== Spack ESMF settings ==="
+        spack load --sh esmf | grep -i esmf
+        
+        # See where Spack installed ESMF
+        ESMF_LOCATION=$(spack location -i esmf)
+        echo -e "\nESMF installed at: $ESMF_LOCATION"
+        
+        # Check if cmake directory exists in ESMF installation
+        ls -la $ESMF_LOCATION/cmake/ 2>/dev/null || echo "No cmake directory in ESMF installation"
+        
         mkdir ${GITHUB_WORKSPACE}/build
         cd ${GITHUB_WORKSPACE}/build
         export CC=mpicc
