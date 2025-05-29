@@ -123,6 +123,13 @@ jobs:
         find $W3EMC_LOC -name "*w3emc*.cmake" -type f 2>/dev/null | head -10
         # Check if there's a pkg-config file
         find $W3EMC_LOC -name "*.pc" 2>/dev/null | xargs grep -l w3emc 2>/dev/null || echo "No pkg-config files"
+
+        echo "=== Checking w3emc CMake targets ==="
+        W3EMC_CMAKE_DIR=$(spack location -i w3emc)/lib/cmake/w3emc
+        echo "Looking at w3emc-targets.cmake:"
+        grep -A5 -B5 "add_library\|IMPORTED_LOCATION\|INTERFACE_LINK_LIBRARIES" $W3EMC_CMAKE_DIR/w3emc-targets.cmake || echo "No target definitions found"
+        echo -e "\nChecking all target names:"
+        grep "add_library" $W3EMC_CMAKE_DIR/*.cmake | grep IMPORTED
         
         mkdir ${GITHUB_WORKSPACE}/build
         cd ${GITHUB_WORKSPACE}/build
