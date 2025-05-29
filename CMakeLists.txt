@@ -152,6 +152,15 @@ if (FV3)
     ${moving_nest_srcs}
     ${POST_SRC}
     )
+
+  message(STATUS "Checking stochastic_physics target...")
+  if(TARGET stochastic_physics)
+    message(STATUS "Target stochastic_physics exists")
+  elseif(TARGET stochastic_physics_repo)
+    message(STATUS "Target stochastic_physics_repo exists")
+  else()
+    message(STATUS "No stochastic physics target found")
+  endif()
   add_dependencies(${DYCORE_TARGET} fv3 fv3ccpp stochastic_physics)
 
   list(APPEND _ufsatm_defs_private GFS_PHYS
