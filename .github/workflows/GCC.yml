@@ -116,21 +116,13 @@ jobs:
         git clone https://github.com/NOAA-EMC/CMakeModules
         git clone --recurse-submodules https://github.com/NOAA-PSL/stochastic_physics stochastic_physics_repo
 
-        echo "=== Checking CCPP structure ==="
-        echo "CCPP at root:"
-        ls -la ${GITHUB_WORKSPACE}/fv3atm/ccpp/ | head -10 || echo "No ccpp at root"
-        
-        echo -e "\nCCPP under fv3:"
-        ls -la ${GITHUB_WORKSPACE}/fv3atm/fv3/ccpp/ | head -10 || echo "No ccpp under fv3"
-        
-        echo -e "\nLooking for ccpp directories:"
-        find ${GITHUB_WORKSPACE}/fv3atm -type d -name "ccpp" -not -path "*/build/*" | head -5
-        
-        echo -e "\nLooking for ccpp_prebuild_config.py:"
-        find ${GITHUB_WORKSPACE}/fv3atm -name "ccpp_prebuild_config.py" -not -path "*/build/*" | head -5
-        
-        echo -e "\nChecking ccpp/config directory:"
-        ls -la ${GITHUB_WORKSPACE}/fv3atm/ccpp/config/ || echo "No ccpp/config directory"
+        echo "=== Checking w3emc installation ==="
+        W3EMC_LOC=$(spack location -i w3emc)
+        echo "w3emc installed at: $W3EMC_LOC"
+        ls -la $W3EMC_LOC/lib/
+        find $W3EMC_LOC -name "*w3emc*.cmake" -type f 2>/dev/null | head -10
+        # Check if there's a pkg-config file
+        find $W3EMC_LOC -name "*.pc" 2>/dev/null | xargs grep -l w3emc 2>/dev/null || echo "No pkg-config files"
         
         mkdir ${GITHUB_WORKSPACE}/build
         cd ${GITHUB_WORKSPACE}/build
