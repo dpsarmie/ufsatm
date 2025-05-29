@@ -152,7 +152,7 @@ if (FV3)
     ${moving_nest_srcs}
     ${POST_SRC}
     )
-
+  add_subdirectory(stochastic_physics_repo)
   message(STATUS "Checking stochastic_physics target...")
   if(TARGET stochastic_physics)
     message(STATUS "Target stochastic_physics exists")
