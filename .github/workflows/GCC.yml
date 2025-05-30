@@ -116,20 +116,10 @@ jobs:
         git clone https://github.com/NOAA-EMC/CMakeModules
         git clone --recurse-submodules https://github.com/NOAA-PSL/stochastic_physics stochastic_physics_repo
 
-        echo "=== Checking w3emc installation ==="
-        W3EMC_LOC=$(spack location -i w3emc)
-        echo "w3emc installed at: $W3EMC_LOC"
-        ls -la $W3EMC_LOC/lib/
-        find $W3EMC_LOC -name "*w3emc*.cmake" -type f 2>/dev/null | head -10
-        # Check if there's a pkg-config file
-        find $W3EMC_LOC -name "*.pc" 2>/dev/null | xargs grep -l w3emc 2>/dev/null || echo "No pkg-config files"
-
-        echo "=== Checking w3emc CMake targets ==="
-        W3EMC_CMAKE_DIR=$(spack location -i w3emc)/lib/cmake/w3emc
-        echo "Looking at w3emc-targets.cmake:"
-        grep -A5 -B5 "add_library\|IMPORTED_LOCATION\|INTERFACE_LINK_LIBRARIES" $W3EMC_CMAKE_DIR/w3emc-targets.cmake || echo "No target definitions found"
-        echo -e "\nChecking all target names:"
-        grep "add_library" $W3EMC_CMAKE_DIR/*.cmake | grep IMPORTED
+        echo "=== Looking for ctlblk_mod.mod ==="
+        find ${GITHUB_WORKSPACE}/build -name "ctlblk_mod.mod" 2>/dev/null || echo "Module not found"
+        echo "=== UPP build directory contents ==="
+        ls -la ${GITHUB_WORKSPACE}/build/upp/mod/ 2>/dev/null || echo "No UPP mod directory"
         
         mkdir ${GITHUB_WORKSPACE}/build
         cd ${GITHUB_WORKSPACE}/build
@@ -137,6 +127,11 @@ jobs:
         export CXX=mpicxx
         export FC=mpif90
         cmake ${GITHUB_WORKSPACE}/fv3atm -DBUILD_CI_TESTING=ON -DFV3=ON ${{ matrix.cmake_opts }} ${{ env.gcov_cmake }}
+
+        echo "=== Looking for ctlblk_mod.mod ==="
+        find ${GITHUB_WORKSPACE}/build -name "ctlblk_mod.mod" 2>/dev/null || echo "Module not found"
+        echo "=== UPP build directory contents ==="
+        ls -la ${GITHUB_WORKSPACE}/build/upp/mod/ 2>/dev/null || echo "No UPP mod directory"
         make -j2
 
     - name: run-tests
