@@ -14,9 +14,11 @@ if(DEFINED ENV{ESMFMKFILE})
   if(EXISTS ${ESMF_ROOT}/mod)
     include_directories(${ESMF_ROOT}/mod)
     message(STATUS "Add: ${ESMF_ROOT}/mod")
+    echo "MOD FOUND"
   elseif(EXISTS ${ESMF_ROOT}/include)
     include_directories(${ESMF_ROOT}/include)
     message(STATUS "Add: ${ESMF_ROOT}/include")
+    echo "INCLUDE FOUND"
   else()
     message(WARNING "Still not working")
   endif()
