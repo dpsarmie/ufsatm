@@ -9,6 +9,9 @@ if(DEFINED ENV{ESMFMKFILE})
   include_directories(${ESMF_ROOT})
   include_directories(${ESMF_ROOT}/lib)
 endif()
+
+find_library(ESMF_LIBRARY esmf PATHS /opt/esmf/lib REQUIRED)
+target_link_libraries(test_post_nems_routines ${ESMF_LIBRARY})
 # Stage test data
 execute_process(COMMAND cmake -E create_symlink
   "${CMAKE_CURRENT_SOURCE_DIR}/data"
