@@ -1,7 +1,14 @@
 # This file sets up CTest unit tests for fv3atm.
 #
 # Alex Richert, Jan 2024
-
+if(DEFINED ENV{ESMFMKFILE})
+  get_filename_component(TEMP_DIR $ENV{ESMFMKFILE} DIRECTORY)
+  get_filename_component(ESMF_ROOT ${TEMP_DIR} DIRECTORY)
+  list(APPEND CMAKE_MODULE_PATH ${ESMF_ROOT}/cmake)
+  include_directories(${ESMF_ROOT}/include)
+  include_directories(${ESMF_ROOT})
+  include_directories(${ESMF_ROOT}/lib)
+endif()
 # Stage test data
 execute_process(COMMAND cmake -E create_symlink
   "${CMAKE_CURRENT_SOURCE_DIR}/data"
