@@ -12,6 +12,8 @@ if(DEFINED ENV{ESMFMKFILE})
   get_filename_component(ESMF_ROOT ${TEMP_DIR} DIRECTORY)
   list(APPEND CMAKE_MODULE_PATH ${ESMF_ROOT}/cmake)
   include_directories(${ESMF_ROOT}/include)
+  include_directories(${ESMF_ROOT})
+  include_directories(${ESMF_ROOT}/lib)
 endif()
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
