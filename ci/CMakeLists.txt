@@ -11,17 +11,7 @@ if(DEFINED ENV{ESMFMKFILE})
   get_filename_component(TEMP_DIR $ENV{ESMFMKFILE} DIRECTORY)
   get_filename_component(ESMF_ROOT ${TEMP_DIR} DIRECTORY)
   list(APPEND CMAKE_MODULE_PATH ${ESMF_ROOT}/cmake)
-  if(EXISTS ${ESMF_ROOT}/mod)
-    include_directories(${ESMF_ROOT}/mod)
-    message(STATUS "Add: ${ESMF_ROOT}/mod")
-    echo "MOD FOUND"
-  elseif(EXISTS ${ESMF_ROOT}/include)
-    include_directories(${ESMF_ROOT}/include)
-    message(STATUS "Add: ${ESMF_ROOT}/include")
-    echo "INCLUDE FOUND"
-  else()
-    message(WARNING "Still not working")
-  endif()
+  include_directories(${ESMF_ROOT}/include)
 endif()
 
 if(${CMAKE_Fortran_COMPILER_ID} MATCHES "GNU")
