@@ -53,6 +53,7 @@ module fv3atm_cap_mod
   implicit none
   private
   public SetServices
+  public OutputHours_FrequencyInput, OutputHours_ArrayInput
 !
 !-----------------------------------------------------------------------
 !
