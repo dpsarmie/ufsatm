@@ -16,7 +16,7 @@ endfunction()
 
 function(add_fv3atm_serial_test TESTNAME)
   add_executable(${TESTNAME} ${TESTNAME}.F90)
-  target_link_libraries(${TESTNAME} PRIVATE ufsatm_fv3)
+  target_link_libraries(${TESTNAME} PRIVATE ufsatm_fv3 PIO::PIO_Fortran)
   add_test(${TESTNAME} ${CMAKE_CURRENT_BINARY_DIR}/${TESTNAME})
 endfunction()
 
