@@ -2,6 +2,7 @@
 #
 # Alex Richert, Jan 2024
 
+find_package(PIO REQUIRED COMPONENTS C Fortran)
 # Stage test data
 execute_process(COMMAND cmake -E create_symlink
   "${CMAKE_CURRENT_SOURCE_DIR}/data"
@@ -10,7 +11,7 @@ execute_process(COMMAND cmake -E create_symlink
 
 function(add_fv3atm_mpi_test TESTNAME)
   add_executable(${TESTNAME} ${TESTNAME}.F90)
-  target_link_libraries(${TESTNAME} PRIVATE ufsatm_fv3 MPI::MPI_Fortran)
+  target_link_libraries(${TESTNAME} PRIVATE ufsatm_fv3 MPI::MPI_Fortran PIO::PIO_C)
   add_test(${TESTNAME} ${MPIEXEC_EXECUTABLE} -n 2 ${CMAKE_CURRENT_BINARY_DIR}/${TESTNAME})
 endfunction()
 
