@@ -12,8 +12,6 @@ program test_atmos_model
   integer :: test_passed, total_tests
   integer :: suite_passed, suite_total
 
-  type(GFS_control_type), save, target :: GFS_control
-
   ! Initialize overall test counters
   suite_passed = 0
   suite_total = 0
@@ -95,7 +93,8 @@ contains
   
   subroutine test_single_fhzero()
     integer :: sec, sec_lastfhzerofh
-    
+    type(GFS_control_type), save, target :: GFS_control
+
     print *, ""
     print *, "Test 1.1: Single fhzero value"
     
@@ -124,7 +123,8 @@ contains
   
   subroutine test_multiple_fhzero()
     integer :: sec, sec_lastfhzerofh
-    
+    type(GFS_control_type), save, target :: GFS_control
+
     print *, ""
     print *, "Test 1.2: Multiple fhzero array values"
     
@@ -164,7 +164,8 @@ contains
   
   subroutine test_fhzero_edge_cases()
     integer :: sec, sec_lastfhzerofh
-    
+    type(GFS_control_type), save, target :: GFS_control
+
     print *, ""
     print *, "Test 1.3: Edge cases"
     
