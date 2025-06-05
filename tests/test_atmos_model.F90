@@ -4,7 +4,7 @@ program test_atmos_model
   use GFS_typedefs, only: GFS_control_type, GFS_kind_phys => kind_phys
   use CCPP_data, only: GFS_control
   use time_manager_mod, only: time_type, set_time, get_time, operator(-)
-  use tracer_manager_mod, only: MODEL_ATMOS, get_number_tracers
+  use tracer_manager_mod, only: get_number_tracers
   use field_manager_mod, only: MODEL_ATMOS
   use mpp_mod, only: mpp_init, mpp_exit, FATAL, mpp_error
   
