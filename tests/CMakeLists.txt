@@ -29,6 +29,6 @@ foreach(testname test_post_nems_routines)
   add_fv3atm_serial_test(${testname})
 endforeach()
 
-foreach(testname test_atmos_model)
+foreach(testname test_atmos_model test_fv3_cap)
   add_fv3atm_mpi_test(${testname})
 endforeach()
