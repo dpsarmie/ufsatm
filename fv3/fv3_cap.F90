@@ -9,7 +9,8 @@
 ! 18 Apr 2017: J. Wang          set up fcst grid component and write grid components
 ! 24 Jul 2017: J. Wang          initialization and time stepping changes for coupling
 ! 02 Nov 2017: J. Wang          Use Gerhard's transferable RouteHandle
-!
+! 20 May 2025: D. Sarmiento     Handle output hour array in seperate subroutines
+! 
 
 module fv3atm_cap_mod
 
@@ -53,6 +54,7 @@ module fv3atm_cap_mod
   implicit none
   private
   public SetServices
+  public OutputHours_FrequencyInput, OutputHours_ArrayInput
 !
 !-----------------------------------------------------------------------
 !
