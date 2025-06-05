@@ -12,7 +12,7 @@ program test_atmos_model
   
   integer :: test_passed, total_tests
   integer :: suite_passed, suite_total
-  
+
   ! Initialize overall test counters
   suite_passed = 0
   suite_total = 0
@@ -287,6 +287,7 @@ contains
   
   subroutine test_iau_offset_at(Atmos)
     type(atmos_data_type), intent(inout) :: Atmos
+    type (time_type) :: diag_time, diag_time_fhzero
     real(kind=GFS_kind_phys) :: time_int, time_intfull
     integer :: seconds, isec_test
     
@@ -294,7 +295,7 @@ contains
     print *, "Test 2.3: With IAU offset, time at offset"
     
     Atmos%iau_offset = 2.0_GFS_kind_phys  ! 2 hour offset
-    Atmos%diag_time_fhzero = set_time(3600, 0)  ! 1 hour
+    diag_time_fhzero = set_time(3600, 0)  ! 1 hour
     time_int = 7200.0_GFS_kind_phys  ! 2 hours
     time_intfull = 7200.0_GFS_kind_phys
     seconds = 7200  ! Exactly at offset time
@@ -302,7 +303,7 @@ contains
     call InitTimeFromIAUOffset(Atmos, time_int, time_intfull, seconds)
     
     total_tests = total_tests + 1
-    call get_time(Atmos%Time - Atmos%diag_time_fhzero, isec_test)
+    call get_time(Atmos%Time - diag_time_fhzero, isec_test)
     if (abs(time_int - real(isec_test, GFS_kind_phys)) < 1.0e-6) then
       print *, "  ✓ PASSED: Special handling at offset time"
       test_passed = test_passed + 1
