@@ -1,13 +1,3 @@
-module dummy_globals
-  use time_manager_mod, only: time_type
-  type dummy_atmos
-    type(time_type)               :: Time               ! current time
-    type(time_type)               :: Time_step          ! atmospheric time step.
-    type(time_type)               :: Time_init          ! reference time.
-    integer                       :: iau_offset
-  end type dummy_atmos 
-end module dummy_globals
-
 program test_atmos_model
   use atmos_model_mod, only: set_fhzero_loop, InitTimeFromIAUOffset, &
                              get_atmos_tracer_types, atmos_data_type
@@ -192,7 +182,7 @@ contains
   ! TEST SUITE 2: InitTimeFromIAUOffset
   !============================================================================
   subroutine test_InitTimeFromIAUOffset_suite()
-    type(dummy_atmos) :: Atmos
+    type(atmos_data_type) :: Atmos
     real(kind=GFS_kind_phys) :: time_int, time_intfull
     integer :: seconds
     
@@ -232,7 +222,7 @@ contains
   end subroutine test_InitTimeFromIAUOffset_suite
   
   subroutine test_no_iau_offset(Atmos)
-    type(dummy_atmos), intent(inout) :: Atmos
+    type(atmos_data_type), intent(inout) :: Atmos
     real(kind=GFS_kind_phys) :: time_int, time_intfull
     integer :: seconds
     
@@ -258,7 +248,7 @@ contains
   end subroutine test_no_iau_offset
   
   subroutine test_iau_offset_after(Atmos)
-    type(dummy_atmos), intent(inout) :: Atmos
+    type(atmos_data_type), intent(inout) :: Atmos
     real(kind=GFS_kind_phys) :: time_int, time_intfull
     integer :: seconds
     
@@ -284,7 +274,7 @@ contains
   end subroutine test_iau_offset_after
   
   subroutine test_iau_offset_at(Atmos)
-    type(dummy_atmos), intent(inout) :: Atmos
+    type(atmos_data_type), intent(inout) :: Atmos
     type (time_type) :: diag_time, diag_time_fhzero
     real(kind=GFS_kind_phys) :: time_int, time_intfull
     integer :: seconds, isec_test
@@ -311,7 +301,7 @@ contains
   end subroutine test_iau_offset_at
   
   subroutine test_iau_offset_before(Atmos)
-    type(dummy_atmos), intent(inout) :: Atmos
+    type(atmos_data_type), intent(inout) :: Atmos
     real(kind=GFS_kind_phys) :: time_int, time_intfull
     integer :: seconds
     
