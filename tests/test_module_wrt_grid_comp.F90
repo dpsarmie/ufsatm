@@ -1,6 +1,19 @@
 program test_module_wrt_grid_comp
-    use module_wrt_grid_comp
+    use module_wrt_grid_comp, only: get_outfile, lambert, rtll, splat8, splat4
     implicit none
+    
+    ! Declare the module functions that we need to test
+    interface
+        pure function trim_regridmethod_suffix(string) result(trimmed_string)
+            character(len=*), intent(in) :: string
+            character(len=:), allocatable :: trimmed_string
+        end function trim_regridmethod_suffix
+        
+        pure function trim_suffix(string, suffix) result(trimmed_string)
+            character(len=*), intent(in) :: string, suffix
+            character(len=:), allocatable :: trimmed_string
+        end function trim_suffix
+    end interface
     
     ! Test counters
     integer :: tests_passed = 0
@@ -382,6 +395,7 @@ contains
     !---------------------------------------------------------------------------
     subroutine test_splat4()
         real(4), allocatable :: aslat(:)
+        real(8), allocatable :: aslat8(:)
         integer :: jmax
         real(4), parameter :: tol = 1.0e-6
         character(len=100) :: test_name
@@ -428,7 +442,6 @@ contains
         test_name = "splat4 vs splat8 comparison"
         jmax = 16
         allocate(aslat(jmax))
-        real(8), allocatable :: aslat8(:)
         allocate(aslat8(jmax))
         
         call splat4(4, jmax, aslat)
