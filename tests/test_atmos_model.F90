@@ -6,6 +6,7 @@ program test_atmos_model
   use tracer_manager_mod, only: get_number_tracers
   use field_manager_mod, only: MODEL_ATMOS
   use mpp_mod, only: mpp_init, mpp_exit, FATAL, mpp_error
+  use CCPP_data, only: GFS_control
   
   implicit none
   
@@ -18,10 +19,6 @@ program test_atmos_model
   
   ! Initialize MPI/MPP
   call mpp_init()
-
-  if (.not. allocated(GFS_control)) then
-    allocate(GFS_control)
-  endif
 
   print *, "=========================================="
   print *, "Testing atmos_model.F90 subroutines"
