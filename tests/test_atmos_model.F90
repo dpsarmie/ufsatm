@@ -114,9 +114,7 @@ contains
       print *, "  ✗ FAILED: Expected fhzero=6.0, sec_lastfhzerofh=0"
       print *, "    Got: fhzero=", GFS_control%fhzero, ", sec_lastfhzerofh=", sec_lastfhzerofh
     end if
-    
-    deallocate(GFS_control%fhzero_array)
-    deallocate(GFS_control%fhzero_fhour)
+
   end subroutine test_single_fhzero
   
   subroutine test_multiple_fhzero()
@@ -126,8 +124,8 @@ contains
     print *, "Test 1.2: Multiple fhzero array values"
     
     ! Setup
-    GFS_control%fhzero_array = [3.0_GFS_kind_phys, 6.0_GFS_kind_phys, 12.0_GFS_kind_phys]
-    GFS_control%fhzero_fhour = [12.0_GFS_kind_phys, 24.0_GFS_kind_phys, 48.0_GFS_kind_phys]
+    GFS_control%fhzero_array = [3.0_GFS_kind_phys, 6.0_GFS_kind_phys]
+    GFS_control%fhzero_fhour = [12.0_GFS_kind_phys, 24.0_GFS_kind_phys]
     
     ! Test first interval
     sec = 7200  ! 2 hours
@@ -153,8 +151,6 @@ contains
       print *, "  ✗ FAILED: Expected fhzero=6.0"
     end if
     
-    deallocate(GFS_control%fhzero_array)
-    deallocate(GFS_control%fhzero_fhour)
   end subroutine test_multiple_fhzero
   
   subroutine test_fhzero_edge_cases()
@@ -178,9 +174,7 @@ contains
     else
       print *, "  ✗ FAILED: sec_lastfhzerofh should be 0 for zero fhzero"
     end if
-    
-    deallocate(GFS_control%fhzero_array)
-    deallocate(GFS_control%fhzero_fhour)
+
   end subroutine test_fhzero_edge_cases
 
   !============================================================================
