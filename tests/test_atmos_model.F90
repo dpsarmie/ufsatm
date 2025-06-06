@@ -18,7 +18,7 @@ program test_atmos_model
   suite_total = 0
   
   ! Initialize MPI/MPP
-  call mpp_init()
+  ! call mpp_init()
 
   print *, "=========================================="
   print *, "Testing atmos_model.F90 subroutines"
