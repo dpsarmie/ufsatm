@@ -18,7 +18,11 @@ program test_atmos_model
   
   ! Initialize MPI/MPP
   call mpp_init()
-  
+
+  if (.not. allocated(GFS_control)) then
+    allocate(GFS_control)
+  endif
+
   print *, "=========================================="
   print *, "Testing atmos_model.F90 subroutines"
   print *, "=========================================="
