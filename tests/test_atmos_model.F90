@@ -1,4 +1,5 @@
 module dummy_globals
+  use time_manager_mod, only: time_type
   type dummy_atmos
     type(time_type)               :: Time               ! current time
     type(time_type)               :: Time_step          ! atmospheric time step.
