@@ -1,7 +1,6 @@
 program test_atmos_model
   use atmos_model_mod, only: set_fhzero_loop, InitTimeFromIAUOffset, &
                              get_atmos_tracer_types, atmos_data_type
-  use dummy_globals
   use GFS_typedefs, only: GFS_control_type, GFS_kind_phys => kind_phys
   use time_manager_mod, only: time_type, set_time, get_time, operator(-)
   use tracer_manager_mod, only: get_number_tracers
