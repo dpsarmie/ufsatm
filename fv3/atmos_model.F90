@@ -1082,7 +1082,7 @@ subroutine update_atmos_model_state (Atmos, rc)
      else if(seconds == Atmos%iau_offset*3600) then
        call get_time (Atmos%Time - diag_time_fhzero, isec_fhzero)
        time_int = real(isec_fhzero)
-       if (mpp_pe() == mpp_root_pe()) write(6,*) "---iseczero",isec_fhzero
+       ! if (mpp_pe() == mpp_root_pe()) write(6,*) "---iseczero",isec_fhzero
      endif
    endif
    time_intfull = real(seconds)
