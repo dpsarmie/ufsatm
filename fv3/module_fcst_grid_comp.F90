@@ -87,6 +87,7 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !
   private
+  public get_outfile, lambert, rtll, splat8, splat4
 !
 !---- model defined-types ----
 
