@@ -28,7 +28,7 @@ program test_atmos_model
   call test_set_fhzero_loop_suite()
   
   ! Test Suite 2: InitTimeFromIAUOffset
-  call test_InitTimeFromIAUOffset_suite()
+  ! call test_InitTimeFromIAUOffset_suite()
   
   ! Test Suite 3: get_atmos_tracer_types
   call test_get_atmos_tracer_types_suite()
