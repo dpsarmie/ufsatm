@@ -93,14 +93,11 @@ contains
   
   subroutine test_single_fhzero()
     integer :: sec, sec_lastfhzerofh
-    type(GFS_control_type), save, target :: GFS_control
 
     print *, ""
     print *, "Test 1.1: Single fhzero value"
     
     ! Setup
-    allocate(GFS_control%fhzero_array(1))
-    allocate(GFS_control%fhzero_fhour(1))
     GFS_control%fhzero_array(1) = 6.0_GFS_kind_phys
     GFS_control%fhzero_fhour(1) = 24.0_GFS_kind_phys
     
@@ -123,14 +120,11 @@ contains
   
   subroutine test_multiple_fhzero()
     integer :: sec, sec_lastfhzerofh
-    type(GFS_control_type), save, target :: GFS_control
 
     print *, ""
     print *, "Test 1.2: Multiple fhzero array values"
     
     ! Setup
-    allocate(GFS_control%fhzero_array(3))
-    allocate(GFS_control%fhzero_fhour(3))
     GFS_control%fhzero_array = [3.0_GFS_kind_phys, 6.0_GFS_kind_phys, 12.0_GFS_kind_phys]
     GFS_control%fhzero_fhour = [12.0_GFS_kind_phys, 24.0_GFS_kind_phys, 48.0_GFS_kind_phys]
     
@@ -164,14 +158,10 @@ contains
   
   subroutine test_fhzero_edge_cases()
     integer :: sec, sec_lastfhzerofh
-    type(GFS_control_type), save, target :: GFS_control
 
     print *, ""
     print *, "Test 1.3: Edge cases"
     
-    ! Setup
-    allocate(GFS_control%fhzero_array(2))
-    allocate(GFS_control%fhzero_fhour(2))
     
     ! Test zero fhzero value
     GFS_control%fhzero_array = [0.0_GFS_kind_phys, 6.0_GFS_kind_phys]
