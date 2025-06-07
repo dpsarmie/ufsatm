@@ -1,478 +1,511 @@
-program test_atmos_model
-  use atmos_model_mod, only: set_fhzero_loop, InitTimeFromIAUOffset, &
-                             get_atmos_tracer_types, atmos_data_type
-  use GFS_typedefs, only: GFS_control_type, GFS_kind_phys => kind_phys
-  use time_manager_mod, only: time_type, set_time, get_time, operator(-)
-  use tracer_manager_mod, only: get_number_tracers
-  use field_manager_mod, only: MODEL_ATMOS
-  use mpp_mod, only: mpp_init, mpp_exit, FATAL, mpp_error
-  use CCPP_data, only: GFS_control
-  
-  implicit none
-  
-  integer :: test_passed, total_tests
-  integer :: suite_passed, suite_total
-
-  ! Initialize overall test counters
-  suite_passed = 0
-  suite_total = 0
-  
-  ! Initialize MPI/MPP
-  ! call mpp_init()
-
-  print *, "=========================================="
-  print *, "Testing atmos_model.F90 subroutines"
-  print *, "=========================================="
-  
-  ! Test Suite 1: set_fhzero_loop
-  call test_set_fhzero_loop_suite()
-  
-  ! Test Suite 2: InitTimeFromIAUOffset
-  ! call test_InitTimeFromIAUOffset_suite()
-  
-  ! Test Suite 3: get_atmos_tracer_types
-  call test_get_atmos_tracer_types_suite()
-  
-  ! Print overall test summary
-  print *, ""
-  print *, "=========================================="
-  print *, "OVERALL TEST SUMMARY:"
-  print *, "=========================================="
-  print '(A,I3,A,I3)', "Total Passed: ", suite_passed, " out of ", suite_total
-  print *, ""
-  
-  if (suite_passed == suite_total) then
-    print *, "ALL TESTS PASSED! ✓"
-  else
-    print *, "SOME TESTS FAILED! ✗"
-  end if
-  
-  ! Cleanup
-  call mpp_exit()
-  
-  if (suite_passed == suite_total) then
-    stop 0
-  else
-    stop 1
-  end if
-  
+program test_module_wrt_grid_comp
+    use module_wrt_grid_comp, only: get_outfile, lambert, rtll, splat8, splat4
+    implicit none
+    
+    ! Test counters
+    integer :: tests_passed = 0
+    integer :: tests_failed = 0
+    
+    ! Run tests for public subroutines only
+    call test_get_outfile()
+    call test_lambert()
+    call test_rtll()
+    call test_splat8()
+    call test_splat4()
+    
+    ! Print summary
+    print *, "========================================="
+    print *, "Test Summary:"
+    print *, "Tests passed: ", tests_passed
+    print *, "Tests failed: ", tests_failed
+    print *, "========================================="
+    
 contains
 
-  !============================================================================
-  ! TEST SUITE 1: set_fhzero_loop
-  !============================================================================
-  subroutine test_set_fhzero_loop_suite()
-    integer :: sec, sec_lastfhzerofh
-    
-    ! Initialize test counters for this suite
-    test_passed = 0
-    total_tests = 0
-    
-    print *, ""
-    print *, "TEST SUITE 1: set_fhzero_loop"
-    print *, "=============================="
-    
-    ! Test 1: Basic functionality with single fhzero value
-    call test_single_fhzero()
-    
-    ! Test 2: Multiple fhzero array values
-    call test_multiple_fhzero()
-    
-    ! Test 3: Edge case with zero and negative values
-    call test_fhzero_edge_cases()
-    
-    ! Update suite totals
-    suite_passed = suite_passed + test_passed
-    suite_total = suite_total + total_tests
-    
-    ! Print suite summary
-    print *, ""
-    print *, "Suite 1 Summary:"
-    print '(A,I3,A,I3)', "Passed: ", test_passed, " out of ", total_tests
-    
-  end subroutine test_set_fhzero_loop_suite
-  
-  subroutine test_single_fhzero()
-    integer :: sec, sec_lastfhzerofh
-
-    print *, ""
-    print *, "Test 1.1: Single fhzero value"
-    
-    ! Setup
-    GFS_control%fhzero_array(1) = 6.0_GFS_kind_phys
-    GFS_control%fhzero_fhour(1) = 24.0_GFS_kind_phys
-    
-    ! Test case: Time within first interval
-    sec = 10800  ! 3 hours
-    call set_fhzero_loop(sec, sec_lastfhzerofh)
-    
-    total_tests = total_tests + 1
-    if (GFS_control%fhzero == 6.0_GFS_kind_phys .and. sec_lastfhzerofh == 0) then
-      print *, "  ✓ PASSED: fhzero set correctly for time within interval"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Expected fhzero=6.0, sec_lastfhzerofh=0"
-      print *, "    Got: fhzero=", GFS_control%fhzero, ", sec_lastfhzerofh=", sec_lastfhzerofh
-    end if
-
-  end subroutine test_single_fhzero
-  
-  subroutine test_multiple_fhzero()
-    integer :: sec, sec_lastfhzerofh
-
-    print *, ""
-    print *, "Test 1.2: Multiple fhzero array values"
-    
-    ! Setup
-    GFS_control%fhzero_array = [3.0_GFS_kind_phys, 6.0_GFS_kind_phys]
-    GFS_control%fhzero_fhour = [12.0_GFS_kind_phys, 24.0_GFS_kind_phys]
-    
-    ! Test first interval
-    sec = 7200  ! 2 hours
-    call set_fhzero_loop(sec, sec_lastfhzerofh)
-    
-    total_tests = total_tests + 1
-    if (GFS_control%fhzero == 3.0_GFS_kind_phys) then
-      print *, "  ✓ PASSED: First interval selected correctly"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Expected fhzero=3.0"
-    end if
-    
-    ! Test second interval
-    sec = 50400  ! 14 hours
-    call set_fhzero_loop(sec, sec_lastfhzerofh)
-    
-    total_tests = total_tests + 1
-    if (GFS_control%fhzero == 6.0_GFS_kind_phys) then
-      print *, "  ✓ PASSED: Second interval selected correctly"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Expected fhzero=6.0"
-    end if
-    
-  end subroutine test_multiple_fhzero
-  
-  subroutine test_fhzero_edge_cases()
-    integer :: sec, sec_lastfhzerofh
-
-    print *, ""
-    print *, "Test 1.3: Edge cases"
-    
-    
-    ! Test zero fhzero value
-    GFS_control%fhzero_array = [0.0_GFS_kind_phys, 6.0_GFS_kind_phys]
-    GFS_control%fhzero_fhour = [6.0_GFS_kind_phys, 12.0_GFS_kind_phys]
-    
-    sec = 3600  ! 1 hour
-    call set_fhzero_loop(sec, sec_lastfhzerofh)
-    
-    total_tests = total_tests + 1
-    if (sec_lastfhzerofh == 0) then
-      print *, "  ✓ PASSED: Zero fhzero handled correctly"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: sec_lastfhzerofh should be 0 for zero fhzero"
-    end if
-
-  end subroutine test_fhzero_edge_cases
-
-  !============================================================================
-  ! TEST SUITE 2: InitTimeFromIAUOffset
-  !============================================================================
-  subroutine test_InitTimeFromIAUOffset_suite()
-    type(atmos_data_type) :: Atmos
-    real(kind=GFS_kind_phys) :: time_int, time_intfull
-    integer :: seconds
-    
-    ! Initialize test counters for this suite
-    test_passed = 0
-    total_tests = 0
-    
-    print *, ""
-    print *, "TEST SUITE 2: InitTimeFromIAUOffset"
-    print *, "==================================="
-    
-    ! Initialize time variables
-    Atmos%Time = set_time(7200, 0)  ! Current time: 2 hours
-    Atmos%Time_init = set_time(0, 0) ! Initial time: 0
-    
-    ! Test 1: No IAU offset
-    call test_no_iau_offset(Atmos)
-    
-    ! Test 2: With IAU offset, time after offset
-    call test_iau_offset_after(Atmos)
-    
-    ! Test 3: With IAU offset, time at offset
-    call test_iau_offset_at(Atmos)
-    
-    ! Test 4: With IAU offset, time before offset
-    call test_iau_offset_before(Atmos)
-    
-    ! Update suite totals
-    suite_passed = suite_passed + test_passed
-    suite_total = suite_total + total_tests
-    
-    ! Print suite summary
-    print *, ""
-    print *, "Suite 2 Summary:"
-    print '(A,I3,A,I3)', "Passed: ", test_passed, " out of ", total_tests
-    
-  end subroutine test_InitTimeFromIAUOffset_suite
-  
-  subroutine test_no_iau_offset(Atmos)
-    type(atmos_data_type), intent(inout) :: Atmos
-    real(kind=GFS_kind_phys) :: time_int, time_intfull
-    integer :: seconds
-    
-    print *, ""
-    print *, "Test 2.1: No IAU offset"
-    
-    Atmos%iau_offset = 0.0_GFS_kind_phys
-    time_int = 7200.0_GFS_kind_phys  ! 2 hours
-    time_intfull = 7200.0_GFS_kind_phys
-    seconds = 7200
-    
-    call InitTimeFromIAUOffset(Atmos, time_int, time_intfull, seconds)
-    
-    total_tests = total_tests + 1
-    if (abs(time_int - 7200.0_GFS_kind_phys) < 1.0e-6 .and. &
-        abs(time_intfull - 7200.0_GFS_kind_phys) < 1.0e-6) then
-      print *, "  ✓ PASSED: No offset applied when iau_offset=0"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Values should remain unchanged"
-      print *, "    time_int=", time_int, ", time_intfull=", time_intfull
-    end if
-  end subroutine test_no_iau_offset
-  
-  subroutine test_iau_offset_after(Atmos)
-    type(atmos_data_type), intent(inout) :: Atmos
-    real(kind=GFS_kind_phys) :: time_int, time_intfull
-    integer :: seconds
-    
-    print *, ""
-    print *, "Test 2.2: With IAU offset, time after offset"
-    
-    Atmos%iau_offset = 1.0_GFS_kind_phys  ! 1 hour offset
-    time_int = 7200.0_GFS_kind_phys  ! 2 hours
-    time_intfull = 7200.0_GFS_kind_phys
-    seconds = 7200
-    
-    call InitTimeFromIAUOffset(Atmos, time_int, time_intfull, seconds)
-    
-    total_tests = total_tests + 1
-    if (abs(time_int - 3600.0_GFS_kind_phys) < 1.0e-6 .and. &
-        abs(time_intfull - 3600.0_GFS_kind_phys) < 1.0e-6) then
-      print *, "  ✓ PASSED: Offset correctly subtracted"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Expected 3600.0 for both values"
-      print *, "    time_int=", time_int, ", time_intfull=", time_intfull
-    end if
-  end subroutine test_iau_offset_after
-  
-  subroutine test_iau_offset_at(Atmos)
-    type(atmos_data_type), intent(inout) :: Atmos
-    type (time_type) :: diag_time, diag_time_fhzero
-    real(kind=GFS_kind_phys) :: time_int, time_intfull
-    integer :: seconds, isec_test
-    
-    print *, ""
-    print *, "Test 2.3: With IAU offset, time at offset"
-    
-    Atmos%iau_offset = 2.0_GFS_kind_phys  ! 2 hour offset
-    diag_time_fhzero = set_time(3600, 0)  ! 1 hour
-    time_int = 7200.0_GFS_kind_phys  ! 2 hours
-    time_intfull = 7200.0_GFS_kind_phys
-    seconds = 7200  ! Exactly at offset time
-    
-    call InitTimeFromIAUOffset(Atmos, time_int, time_intfull, seconds)
-    
-    total_tests = total_tests + 1
-    call get_time(Atmos%Time - diag_time_fhzero, isec_test)
-    if (abs(time_int - real(isec_test, GFS_kind_phys)) < 1.0e-6) then
-      print *, "  ✓ PASSED: Special handling at offset time"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Special handling not applied correctly"
-    end if
-  end subroutine test_iau_offset_at
-  
-  subroutine test_iau_offset_before(Atmos)
-    type(atmos_data_type), intent(inout) :: Atmos
-    real(kind=GFS_kind_phys) :: time_int, time_intfull
-    integer :: seconds
-    
-    print *, ""
-    print *, "Test 2.4: With IAU offset, time before offset"
-    
-    Atmos%iau_offset = 3.0_GFS_kind_phys  ! 3 hour offset
-    time_int = 1800.0_GFS_kind_phys  ! 0.5 hours
-    time_intfull = 1800.0_GFS_kind_phys
-    seconds = 1800
-    
-    call InitTimeFromIAUOffset(Atmos, time_int, time_intfull, seconds)
-    
-    total_tests = total_tests + 1
-    if (abs(time_int - 1800.0_GFS_kind_phys) < 1.0e-6 .and. &
-        abs(time_intfull - 1800.0_GFS_kind_phys) < 1.0e-6) then
-      print *, "  ✓ PASSED: No change when time < offset"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Values should remain unchanged"
-      print *, "    time_int=", time_int, ", time_intfull=", time_intfull
-    end if
-  end subroutine test_iau_offset_before
-
-  !============================================================================
-  ! TEST SUITE 3: get_atmos_tracer_types
-  !============================================================================
-  subroutine test_get_atmos_tracer_types_suite()
-    integer, allocatable :: tracer_types(:)
-    integer :: num_tracers
-    
-    ! Initialize test counters for this suite
-    test_passed = 0
-    total_tests = 0
-    
-    print *, ""
-    print *, "TEST SUITE 3: get_atmos_tracer_types"
-    print *, "===================================="
-    
-    ! Test 1: Basic functionality with mock tracers
-    call test_tracer_basic_functionality()
-    
-    ! Test 2: Test with chemistry tracers
-    call test_chemistry_tracers()
-    
-    ! Test 3: Edge cases
-    call test_tracer_edge_cases()
-    
-    ! Update suite totals
-    suite_passed = suite_passed + test_passed
-    suite_total = suite_total + total_tests
-    
-    ! Print suite summary
-    print *, ""
-    print *, "Suite 3 Summary:"
-    print '(A,I3,A,I3)', "Passed: ", test_passed, " out of ", total_tests
-    
-  end subroutine test_get_atmos_tracer_types_suite
-  
-  subroutine test_tracer_basic_functionality()
-    integer, allocatable :: tracer_types(:)
-    integer :: num_tracers
-    
-    print *, ""
-    print *, "Test 3.1: Basic functionality"
-    
-    ! For this test, we'll simulate having 5 tracers
-    num_tracers = 5
-    allocate(tracer_types(num_tracers))
-    
-    ! Initialize all to zero (default)
-    tracer_types = 0
-    
-    total_tests = total_tests + 1
-    if (all(tracer_types == 0)) then
-      print *, "  ✓ PASSED: Default tracer types are 0"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Default should be 0"
-    end if
-    
-    ! Test array size validation
-    total_tests = total_tests + 1
-    if (size(tracer_types) == num_tracers) then
-      print *, "  ✓ PASSED: Array size matches number of tracers"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Array size mismatch"
-    end if
-    
-    deallocate(tracer_types)
-  end subroutine test_tracer_basic_functionality
-  
-  subroutine test_chemistry_tracers()
-    integer, allocatable :: tracer_types(:)
-    integer :: num_tracers
-    
-    print *, ""
-    print *, "Test 3.2: Chemistry tracers"
-    
-    ! Simulate having tracers with chemistry types
-    num_tracers = 8
-    allocate(tracer_types(num_tracers))
-    
-    ! Manually set tracer types to simulate:
-    ! - Tracers 1-3: generic (0)
-    ! - Tracers 4-6: chemistry prognostic (1)
-    ! - Tracers 7-8: chemistry diagnostic (2)
-    tracer_types = [0, 0, 0, 1, 1, 1, 2, 2]
-    
-    ! Test prognostic tracers are contiguous
-    total_tests = total_tests + 1
-    if (all(tracer_types(4:6) == 1)) then
-      print *, "  ✓ PASSED: Prognostic chemistry tracers are contiguous"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Prognostic tracers not contiguous"
-    end if
-    
-    ! Test diagnostic tracers are contiguous
-    total_tests = total_tests + 1
-    if (all(tracer_types(7:8) == 2)) then
-      print *, "  ✓ PASSED: Diagnostic chemistry tracers are contiguous"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Diagnostic tracers not contiguous"
-    end if
-    
-    ! Test prognostic precede diagnostic
-    total_tests = total_tests + 1
-    if (maxloc(tracer_types, mask=(tracer_types==1), dim=1) < &
-        minloc(tracer_types, mask=(tracer_types==2), dim=1)) then
-      print *, "  ✓ PASSED: Prognostic tracers precede diagnostic"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Tracer ordering incorrect"
-    end if
-    
-    deallocate(tracer_types)
-  end subroutine test_chemistry_tracers
-  
-  subroutine test_tracer_edge_cases()
-    integer, allocatable :: tracer_types(:)
-    integer :: num_tracers
-    
-    print *, ""
-    print *, "Test 3.3: Edge cases"
-    
-    ! Test with no tracers
-    num_tracers = 0
-    allocate(tracer_types(max(1, num_tracers)))  ! Allocate at least 1 to avoid issues
-    
-    total_tests = total_tests + 1
-    print *, "  ✓ PASSED: Handled zero tracers case"
-    test_passed = test_passed + 1
-    
-    deallocate(tracer_types)
-    
-    ! Test with large number of tracers
-    num_tracers = 100
-    allocate(tracer_types(num_tracers))
-    tracer_types = 0
-    
-    total_tests = total_tests + 1
-    if (size(tracer_types) == 100) then
-      print *, "  ✓ PASSED: Large tracer array handled"
-      test_passed = test_passed + 1
-    else
-      print *, "  ✗ FAILED: Large array not allocated correctly"
-    end if
-    
-    deallocate(tracer_types)
-  end subroutine test_tracer_edge_cases
-
-end program test_atmos_model
+    !---------------------------------------------------------------------------
+    ! Test get_outfile subroutine
+    !---------------------------------------------------------------------------
+    subroutine test_get_outfile()
+        character(len=128) :: filename(2000,3)
+        character(len=128) :: outfile_name(100)
+        integer :: noutfile
+        character(len=100) :: test_name
+        
+        print *, "Testing get_outfile..."
+        
+        ! Test 1: Basic test with unique filenames
+        test_name = "get_outfile with unique filenames"
+        filename = ''
+        filename(1,1) = 'file1.nc'
+        filename(2,1) = 'file2.nc'
+        filename(1,2) = 'file3.nc'
+        filename(1,3) = 'file4.nc'
+        
+        call get_outfile(3, filename, outfile_name, noutfile)
+        call assert_equal(trim(test_name)//" count", noutfile, 4)
+        call assert_string_equal(trim(test_name)//" file1", trim(outfile_name(1)), "file1.nc")
+        call assert_string_equal(trim(test_name)//" file2", trim(outfile_name(2)), "file2.nc")
+        call assert_string_equal(trim(test_name)//" file3", trim(outfile_name(3)), "file3.nc")
+        call assert_string_equal(trim(test_name)//" file4", trim(outfile_name(4)), "file4.nc")
+        
+        ! Test 2: Test with duplicate filenames
+        test_name = "get_outfile with duplicate filenames"
+        filename = ''
+        filename(1,1) = 'file1.nc'
+        filename(2,1) = 'file2.nc'
+        filename(1,2) = 'file1.nc'  ! duplicate
+        filename(2,2) = 'file3.nc'
+        
+        call get_outfile(2, filename, outfile_name, noutfile)
+        call assert_equal(trim(test_name)//" count", noutfile, 3)
+        
+        ! Test 3: Test with 'none' entries
+        test_name = "get_outfile with 'none' entries"
+        filename = ''
+        filename(1,1) = 'file1.nc'
+        filename(2,1) = 'none'
+        filename(3,1) = 'file2.nc'
+        
+        call get_outfile(1, filename, outfile_name, noutfile)
+        call assert_equal(trim(test_name)//" count", noutfile, 2)
+        
+        ! Test 4: Test with empty entries
+        test_name = "get_outfile with empty entries"
+        filename = ''
+        filename(1,1) = 'file1.nc'
+        filename(2,1) = ''
+        filename(3,1) = 'file2.nc'  ! This won't be processed
+        
+        call get_outfile(1, filename, outfile_name, noutfile)
+        call assert_equal(trim(test_name)//" count", noutfile, 1)
+        
+        ! Test 5: Test with all empty
+        test_name = "get_outfile with all empty"
+        filename = ''
+        
+        call get_outfile(1, filename, outfile_name, noutfile)
+        call assert_equal(trim(test_name)//" count", noutfile, 0)
+        
+    end subroutine test_get_outfile
+    
+    !---------------------------------------------------------------------------
+    ! Test lambert subroutine
+    !---------------------------------------------------------------------------
+    subroutine test_lambert()
+        real(8) :: stlat1, stlat2, c_lat, c_lon
+        real(8) :: glon, glat, x, y
+        real(8) :: glon_out, glat_out
+        real(8), parameter :: tol = 1.0e-6
+        character(len=100) :: test_name
+        
+        print *, "Testing lambert..."
+        
+        ! Test 1: Forward transformation (glon,glat) -> (x,y)
+        test_name = "lambert forward transformation"
+        stlat1 = 30.0_8
+        stlat2 = 60.0_8
+        c_lat = 45.0_8
+        c_lon = -100.0_8
+        glon = -95.0_8
+        glat = 40.0_8
+        
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
+        
+        ! Test inverse transformation
+        glon_out = 0.0_8
+        glat_out = 0.0_8
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon_out, glat_out, x, y, -1)
+        
+        call assert_real_equal(trim(test_name)//" glon roundtrip", glon_out, glon, tol)
+        call assert_real_equal(trim(test_name)//" glat roundtrip", glat_out, glat, tol)
+        
+        ! Test 2: Special case where stlat1 == stlat2
+        test_name = "lambert with equal standard latitudes"
+        stlat1 = 45.0_8
+        stlat2 = 45.0_8
+        c_lat = 45.0_8
+        c_lon = -100.0_8
+        glon = -90.0_8
+        glat = 45.0_8
+        
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon_out, glat_out, x, y, -1)
+        
+        call assert_real_equal(trim(test_name)//" glon", glon_out, glon, tol)
+        call assert_real_equal(trim(test_name)//" glat", glat_out, glat, tol)
+        
+        ! Test 3: Point at projection center
+        test_name = "lambert at projection center"
+        glon = c_lon
+        glat = c_lat
+        
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
+        call assert_real_equal(trim(test_name)//" x", x, 0.0_8, tol)
+        
+        ! Test 4: Test longitude wrapping
+        test_name = "lambert with longitude wrapping"
+        glon = 170.0_8
+        glat = 45.0_8
+        c_lon = -170.0_8
+        
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon_out, glat_out, x, y, -1)
+        
+        ! Check that longitude is properly wrapped
+        if (glon_out > 180.0_8) glon_out = glon_out - 360.0_8
+        call assert_real_equal(trim(test_name)//" glon", glon_out, glon, tol)
+        
+        ! Test 5: Northern hemisphere case
+        test_name = "lambert northern hemisphere"
+        stlat1 = 20.0_8
+        stlat2 = 50.0_8
+        c_lat = 35.0_8
+        c_lon = 0.0_8
+        glon = 10.0_8
+        glat = 40.0_8
+        
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
+        call lambert(stlat1, stlat2, c_lat, c_lon, glon_out, glat_out, x, y, -1)
+        
+        call assert_real_equal(trim(test_name)//" glon", glon_out, glon, tol)
+        call assert_real_equal(trim(test_name)//" glat", glat_out, glat, tol)
+        
+    end subroutine test_lambert
+    
+    !---------------------------------------------------------------------------
+    ! Test rtll subroutine
+    !---------------------------------------------------------------------------
+    subroutine test_rtll()
+        real(8) :: tlmd, tphd, almd, aphd, tlm0d, tph0d
+        real(8), parameter :: tol = 1.0e-8
+        character(len=100) :: test_name
+        
+        print *, "Testing rtll..."
+        
+        ! Test 1: Basic rotation
+        test_name = "rtll basic rotation"
+        tlm0d = -100.0_8
+        tph0d = 45.0_8
+        tlmd = 0.0_8
+        tphd = 0.0_8
+        
+        call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        
+        ! Verify result is reasonable
+        call assert_range(trim(test_name)//" almd", almd, -180.0_8, 180.0_8)
+        call assert_range(trim(test_name)//" aphd", aphd, -90.0_8, 90.0_8)
+        
+        ! Test 2: No rotation (identity) - pole at north pole
+        test_name = "rtll identity"
+        tlm0d = 0.0_8
+        tph0d = 90.0_8  ! North pole rotation
+        tlmd = 45.0_8
+        tphd = 30.0_8
+        
+        call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        call assert_real_equal(trim(test_name)//" almd", almd, tlmd, tol)
+        call assert_real_equal(trim(test_name)//" aphd", aphd, tphd, tol)
+        
+        ! Test 3: Longitude wrapping
+        test_name = "rtll longitude wrapping"
+        tlm0d = 170.0_8
+        tph0d = 0.0_8
+        tlmd = 20.0_8
+        tphd = 0.0_8
+        
+        call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        call assert_range(trim(test_name)//" almd wrapped", almd, -180.0_8, 180.0_8)
+        
+        ! Test 4: Extreme latitudes
+        test_name = "rtll extreme latitudes"
+        tlm0d = 0.0_8
+        tph0d = 0.0_8
+        tlmd = 0.0_8
+        tphd = 89.9_8  ! Near pole
+        
+        call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        call assert_range(trim(test_name)//" aphd", aphd, -90.0_8, 90.0_8)
+        
+        ! Test 5: Equator rotation center
+        test_name = "rtll equator center"
+        tlm0d = 0.0_8
+        tph0d = 0.0_8
+        tlmd = 90.0_8
+        tphd = 0.0_8
+        
+        call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        call assert_real_equal(trim(test_name)//" almd", almd, 90.0_8, tol)
+        call assert_real_equal(trim(test_name)//" aphd", aphd, 0.0_8, tol)
+        
+    end subroutine test_rtll
+    
+    !---------------------------------------------------------------------------
+    ! Test splat8 subroutine
+    !---------------------------------------------------------------------------
+    subroutine test_splat8()
+        real(8), allocatable :: aslat(:)
+        integer :: jmax
+        real(8), parameter :: tol = 1.0e-12
+        real(8), parameter :: pi = 3.14159265358979323846_8
+        character(len=100) :: test_name
+        integer :: j
+        
+        print *, "Testing splat8..."
+        
+        ! Test 1: Gaussian grid (idrt=4)
+        test_name = "splat8 Gaussian grid"
+        jmax = 8
+        allocate(aslat(jmax))
+        
+        call splat8(4, jmax, aslat)
+        
+        ! Check properties of Gaussian latitudes
+        ! Should be symmetric about equator
+        do j = 1, jmax/2
+            call assert_real_equal(trim(test_name)//" symmetry", aslat(j), -aslat(jmax+1-j), tol)
+        end do
+        
+        ! Should be in descending order (from north to south)
+        do j = 2, jmax
+            call assert_true(trim(test_name)//" descending order", aslat(j-1) > aslat(j))
+        end do
+        
+        ! Should be bounded by [-1, 1]
+        do j = 1, jmax
+            call assert_range(trim(test_name)//" bounds", aslat(j), -1.0_8, 1.0_8)
+        end do
+        
+        deallocate(aslat)
+        
+        ! Test 2: Regular grid with poles (idrt=0)
+        test_name = "splat8 regular grid with poles"
+        jmax = 9  ! Odd number for equator
+        allocate(aslat(jmax))
+        
+        call splat8(0, jmax, aslat)
+        
+        ! First point should be at north pole
+        call assert_real_equal(trim(test_name)//" north pole", aslat(1), 1.0_8, tol)
+        
+        ! Last point should be at south pole
+        call assert_real_equal(trim(test_name)//" south pole", aslat(jmax), -1.0_8, tol)
+        
+        ! Middle point should be at equator (for odd jmax)
+        call assert_real_equal(trim(test_name)//" equator", aslat((jmax+1)/2), 0.0_8, tol)
+        
+        deallocate(aslat)
+        
+        ! Test 3: Regular grid without poles (idrt=256)
+        test_name = "splat8 regular grid without poles"
+        jmax = 8
+        allocate(aslat(jmax))
+        
+        call splat8(256, jmax, aslat)
+        
+        ! First point should not be at pole
+        call assert_true(trim(test_name)//" not at north pole", aslat(1) < 1.0_8)
+        
+        ! Last point should not be at pole
+        call assert_true(trim(test_name)//" not at south pole", aslat(jmax) > -1.0_8)
+        
+        ! Should still be symmetric
+        do j = 1, jmax/2
+            call assert_real_equal(trim(test_name)//" symmetry", aslat(j), -aslat(jmax+1-j), tol)
+        end do
+        
+        ! Check first latitude for grid without poles
+        call assert_real_equal(trim(test_name)//" first lat", aslat(1), cos(0.5_8*pi/real(jmax,8)), tol)
+        
+        deallocate(aslat)
+        
+        ! Test 4: Large Gaussian grid
+        test_name = "splat8 large Gaussian grid"
+        jmax = 100
+        allocate(aslat(jmax))
+        
+        call splat8(4, jmax, aslat)
+        
+        ! Check basic properties
+        call assert_true(trim(test_name)//" ordered", aslat(1) > aslat(jmax))
+        call assert_range(trim(test_name)//" range", aslat(1), 0.9_8, 1.0_8)
+        call assert_range(trim(test_name)//" range", aslat(jmax), -1.0_8, -0.9_8)
+        
+        deallocate(aslat)
+        
+    end subroutine test_splat8
+    
+    !---------------------------------------------------------------------------
+    ! Test splat4 subroutine
+    !---------------------------------------------------------------------------
+    subroutine test_splat4()
+        real(4), allocatable :: aslat(:)
+        real(8), allocatable :: aslat8(:)
+        integer :: jmax
+        real(4), parameter :: tol = 1.0e-6
+        real(8), parameter :: pi = 3.14159265358979323846_8
+        character(len=100) :: test_name
+        integer :: j
+        
+        print *, "Testing splat4..."
+        
+        ! Test 1: Gaussian grid (idrt=4)
+        test_name = "splat4 Gaussian grid"
+        jmax = 8
+        allocate(aslat(jmax))
+        
+        call splat4(4, jmax, aslat)
+        
+        ! Check properties of Gaussian latitudes
+        ! Should be symmetric about equator
+        do j = 1, jmax/2
+            call assert_real4_equal(trim(test_name)//" symmetry", aslat(j), -aslat(jmax+1-j), tol)
+        end do
+        
+        ! Should be in descending order (from north to south)
+        do j = 2, jmax
+            call assert_true(trim(test_name)//" descending order", aslat(j-1) > aslat(j))
+        end do
+        
+        deallocate(aslat)
+        
+        ! Test 2: Regular grid with poles (idrt=0)
+        test_name = "splat4 regular grid with poles"
+        jmax = 9
+        allocate(aslat(jmax))
+        
+        call splat4(0, jmax, aslat)
+        
+        ! First point should be at north pole
+        call assert_real4_equal(trim(test_name)//" north pole", aslat(1), 1.0_4, tol)
+        
+        ! Last point should be at south pole
+        call assert_real4_equal(trim(test_name)//" south pole", aslat(jmax), -1.0_4, tol)
+        
+        deallocate(aslat)
+        
+        ! Test 3: Regular grid without poles (idrt=256)
+        test_name = "splat4 regular grid without poles"
+        jmax = 8
+        allocate(aslat(jmax))
+        
+        call splat4(256, jmax, aslat)
+        
+        ! Check first latitude
+        call assert_real4_equal(trim(test_name)//" first lat", aslat(1), real(cos(0.5*pi/real(jmax,8)),4), tol)
+        
+        deallocate(aslat)
+        
+        ! Test 4: Comparison between splat4 and splat8
+        test_name = "splat4 vs splat8 comparison"
+        jmax = 16
+        allocate(aslat(jmax))
+        allocate(aslat8(jmax))
+        
+        call splat4(4, jmax, aslat)
+        call splat8(4, jmax, aslat8)
+        
+        ! Results should be close (within single precision tolerance)
+        do j = 1, jmax
+            call assert_real4_equal(trim(test_name)//" consistency", aslat(j), real(aslat8(j),4), tol)
+        end do
+        
+        deallocate(aslat)
+        deallocate(aslat8)
+        
+    end subroutine test_splat4
+    
+    !---------------------------------------------------------------------------
+    ! Assertion utilities
+    !---------------------------------------------------------------------------
+    subroutine assert_equal(test_name, actual, expected)
+        character(len=*), intent(in) :: test_name
+        integer, intent(in) :: actual, expected
+        
+        if (actual == expected) then
+            print *, "PASS: ", trim(test_name)
+            tests_passed = tests_passed + 1
+        else
+            print *, "FAIL: ", trim(test_name)
+            print *, "  Expected: ", expected
+            print *, "  Actual: ", actual
+            tests_failed = tests_failed + 1
+        end if
+    end subroutine assert_equal
+    
+    subroutine assert_string_equal(test_name, actual, expected)
+        character(len=*), intent(in) :: test_name
+        character(len=*), intent(in) :: actual, expected
+        
+        if (actual == expected) then
+            print *, "PASS: ", trim(test_name)
+            tests_passed = tests_passed + 1
+        else
+            print *, "FAIL: ", trim(test_name)
+            print *, "  Expected: '", trim(expected), "'"
+            print *, "  Actual: '", trim(actual), "'"
+            tests_failed = tests_failed + 1
+        end if
+    end subroutine assert_string_equal
+    
+    subroutine assert_real_equal(test_name, actual, expected, tolerance)
+        character(len=*), intent(in) :: test_name
+        real(8), intent(in) :: actual, expected, tolerance
+        
+        if (abs(actual - expected) <= tolerance) then
+            print *, "PASS: ", trim(test_name)
+            tests_passed = tests_passed + 1
+        else
+            print *, "FAIL: ", trim(test_name)
+            print *, "  Expected: ", expected
+            print *, "  Actual: ", actual
+            print *, "  Difference: ", abs(actual - expected)
+            tests_failed = tests_failed + 1
+        end if
+    end subroutine assert_real_equal
+    
+    subroutine assert_real4_equal(test_name, actual, expected, tolerance)
+        character(len=*), intent(in) :: test_name
+        real(4), intent(in) :: actual, expected, tolerance
+        
+        if (abs(actual - expected) <= tolerance) then
+            print *, "PASS: ", trim(test_name)
+            tests_passed = tests_passed + 1
+        else
+            print *, "FAIL: ", trim(test_name)
+            print *, "  Expected: ", expected
+            print *, "  Actual: ", actual
+            print *, "  Difference: ", abs(actual - expected)
+            tests_failed = tests_failed + 1
+        end if
+    end subroutine assert_real4_equal
+    
+    subroutine assert_true(test_name, condition)
+        character(len=*), intent(in) :: test_name
+        logical, intent(in) :: condition
+        
+        if (condition) then
+            print *, "PASS: ", trim(test_name)
+            tests_passed = tests_passed + 1
+        else
+            print *, "FAIL: ", trim(test_name)
+            print *, "  Condition was false"
+            tests_failed = tests_failed + 1
+        end if
+    end subroutine assert_true
+    
+    subroutine assert_range(test_name, value, min_val, max_val)
+        character(len=*), intent(in) :: test_name
+        real(8), intent(in) :: value, min_val, max_val
+        
+        if (value >= min_val .and. value <= max_val) then
+            print *, "PASS: ", trim(test_name)
+            tests_passed = tests_passed + 1
+        else
+            print *, "FAIL: ", trim(test_name)
+            print *, "  Value: ", value
+            print *, "  Expected range: [", min_val, ", ", max_val, "]"
+            tests_failed = tests_failed + 1
+        end if
+    end subroutine assert_range
+    
+end program test_module_wrt_grid_comp
