@@ -59,7 +59,7 @@
 !-----------------------------------------------------------------------
 
       private
-      public get_outfile, lambert, rtll, splat8, splat4
+      public get_outfile, lambert, rtll, splat8, splat4, trim_suffix, trim_regridmethod_suffix
 !
 !-----------------------------------------------------------------------
 !
