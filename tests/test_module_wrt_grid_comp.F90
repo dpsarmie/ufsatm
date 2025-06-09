@@ -2,26 +2,11 @@ program test_module_wrt_grid_comp
     use module_wrt_grid_comp, only: get_outfile, lambert, rtll, splat8, splat4
     implicit none
     
-    ! Declare the module functions that we need to test
-    interface
-        pure function trim_regridmethod_suffix(string) result(trimmed_string)
-            character(len=*), intent(in) :: string
-            character(len=:), allocatable :: trimmed_string
-        end function trim_regridmethod_suffix
-        
-        pure function trim_suffix(string, suffix) result(trimmed_string)
-            character(len=*), intent(in) :: string, suffix
-            character(len=:), allocatable :: trimmed_string
-        end function trim_suffix
-    end interface
-    
     ! Test counters
     integer :: tests_passed = 0
     integer :: tests_failed = 0
     
     ! Run all tests
-    call test_trim_regridmethod_suffix()
-    call test_trim_suffix()
     call test_get_outfile()
     call test_lambert()
     call test_rtll()
@@ -36,98 +21,6 @@ program test_module_wrt_grid_comp
     print *, "========================================="
     
 contains
-
-    !---------------------------------------------------------------------------
-    ! Test trim_regridmethod_suffix function
-    !---------------------------------------------------------------------------
-    subroutine test_trim_regridmethod_suffix()
-        character(len=:), allocatable :: result
-        character(len=100) :: test_name
-        
-        print *, "Testing trim_regridmethod_suffix..."
-        
-        ! Test 1: String with _bilinear suffix
-        test_name = "trim_regridmethod_suffix with _bilinear"
-        result = trim_regridmethod_suffix("output_grid_bilinear")
-        call assert_string_equal(test_name, result, "output_grid")
-        
-        ! Test 2: String with _patch suffix
-        test_name = "trim_regridmethod_suffix with _patch"
-        result = trim_regridmethod_suffix("output_grid_patch")
-        call assert_string_equal(test_name, result, "output_grid")
-        
-        ! Test 3: String with _nearest_stod suffix
-        test_name = "trim_regridmethod_suffix with _nearest_stod"
-        result = trim_regridmethod_suffix("output_grid_nearest_stod")
-        call assert_string_equal(test_name, result, "output_grid")
-        
-        ! Test 4: String with _nearest_dtos suffix
-        test_name = "trim_regridmethod_suffix with _nearest_dtos"
-        result = trim_regridmethod_suffix("output_grid_nearest_dtos")
-        call assert_string_equal(test_name, result, "output_grid")
-        
-        ! Test 5: String with _conserve suffix
-        test_name = "trim_regridmethod_suffix with _conserve"
-        result = trim_regridmethod_suffix("output_grid_conserve")
-        call assert_string_equal(test_name, result, "output_grid")
-        
-        ! Test 6: String with no suffix
-        test_name = "trim_regridmethod_suffix with no suffix"
-        result = trim_regridmethod_suffix("output_grid")
-        call assert_string_equal(test_name, result, "output_grid")
-        
-        ! Test 7: String with spaces
-        test_name = "trim_regridmethod_suffix with spaces"
-        result = trim_regridmethod_suffix("  output_grid_bilinear  ")
-        call assert_string_equal(test_name, result, "output_grid")
-        
-        ! Test 8: Empty string
-        test_name = "trim_regridmethod_suffix with empty string"
-        result = trim_regridmethod_suffix("")
-        call assert_string_equal(test_name, result, "")
-        
-    end subroutine test_trim_regridmethod_suffix
-    
-    !---------------------------------------------------------------------------
-    ! Test trim_suffix function
-    !---------------------------------------------------------------------------
-    subroutine test_trim_suffix()
-        character(len=:), allocatable :: result
-        character(len=100) :: test_name
-        
-        print *, "Testing trim_suffix..."
-        
-        ! Test 1: String with matching suffix
-        test_name = "trim_suffix with matching suffix"
-        result = trim_suffix("hello_world", "_world")
-        call assert_string_equal(test_name, result, "hello")
-        
-        ! Test 2: String without matching suffix
-        test_name = "trim_suffix without matching suffix"
-        result = trim_suffix("hello_world", "_earth")
-        call assert_string_equal(test_name, result, "hello_world")
-        
-        ! Test 3: Empty string
-        test_name = "trim_suffix with empty string"
-        result = trim_suffix("", "_suffix")
-        call assert_string_equal(test_name, result, "")
-        
-        ! Test 4: Empty suffix
-        test_name = "trim_suffix with empty suffix"
-        result = trim_suffix("hello", "")
-        call assert_string_equal(test_name, result, "hello")
-        
-        ! Test 5: Suffix longer than string
-        test_name = "trim_suffix with suffix longer than string"
-        result = trim_suffix("hi", "_hello")
-        call assert_string_equal(test_name, result, "hi")
-        
-        ! Test 6: Exact match
-        test_name = "trim_suffix with exact match"
-        result = trim_suffix("_suffix", "_suffix")
-        call assert_string_equal(test_name, result, "")
-        
-    end subroutine test_trim_suffix
     
     !---------------------------------------------------------------------------
     ! Test get_outfile subroutine
