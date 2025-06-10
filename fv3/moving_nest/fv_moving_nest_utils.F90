@@ -82,7 +82,7 @@ module fv_moving_nest_utils_mod
   use fv_arrays_mod,     only: fv_grid_type, fv_nest_type, fv_atmos_type
   use fv_surf_map_mod,   only: FV3_zs_filter
   use fv_moving_nest_types_mod, only: grid_geometry
- ! use ifport,            only: getcwd
+  use ifport,            only: getcwd
 
   implicit none
 
