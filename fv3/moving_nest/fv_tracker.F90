@@ -58,7 +58,7 @@ module fv_tracker_mod
   public :: fv_tracker_init, fv_tracker_center, fv_tracker_post_move
   public :: fv_diag_tracker, allocate_tracker, deallocate_tracker
   public :: check_is_moving_nest, execute_tracker
-  public :: Tracker
+  public :: Tracker, calcdist
 
   integer, parameter :: maxtp=11 ! number of tracker parameters
 
