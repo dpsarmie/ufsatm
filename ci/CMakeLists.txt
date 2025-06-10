@@ -44,7 +44,7 @@ set(32BIT           OFF CACHE BOOL "Enable 32BIT (single precision arithmetic in
 set(CCPP_32BIT      OFF CACHE BOOL "Enable CCPP_32BIT (single precision arithmetic in slow physics)")
 set(INLINE_POST     ON  CACHE BOOL "Enable inline post")
 set(MULTI_GASES     OFF CACHE BOOL "Enable MULTI_GASES")
-set(MOVING_NEST     ON CACHE BOOL "Enable moving nest code")
+set(MOVING_NEST     OFF CACHE BOOL "Enable moving nest code")
 set(OPENMP          ON  CACHE BOOL "Enable OpenMP threading")
 set(PARALLEL_NETCDF OFF CACHE BOOL "Enable parallel NetCDF")
 
