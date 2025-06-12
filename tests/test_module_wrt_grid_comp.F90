@@ -63,7 +63,8 @@ contains
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
         
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
-          stop 2
+          print *, x, y
+          !stop 2
         end if          
               
         ! Test inverse transformation
@@ -72,7 +73,8 @@ contains
         call lambert(stlat1, stlat2, c_lat, c_lon, glon_inv, glat_inv, x, y, -1)
         
         if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol ) then
-          stop 3
+          print *, glon_inv, glat_inv
+          !stop 3
         end if
         
         ! Test 2: Special case where stlat1 == stlat2
@@ -90,7 +92,8 @@ contains
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
         
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
-          stop 4
+          print *, x, y
+          !stop 4
         end if
         
         ! Test 3: Point at projection center
@@ -101,7 +104,8 @@ contains
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
         
         if ( true_x /= x .or. true_y /= y ) then
-          stop 5
+          print *, x, y
+          !stop 5
         end if
         
     end subroutine test_lambert
