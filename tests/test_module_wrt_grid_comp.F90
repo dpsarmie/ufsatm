@@ -95,7 +95,7 @@ contains
 
         if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol ) then
           print *, glon_inv, glat_inv
-          !stop 3
+          stop 3
         end if
         
         ! Test 2: Special case where stlat1 == stlat2
@@ -117,7 +117,7 @@ contains
 
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
           print *, x, y
-          !stop 4
+          stop 4
         end if
         
         ! Test 3: Point at projection center
@@ -132,7 +132,7 @@ contains
       
         if ( true_x /= x .or. true_y /= y ) then
           print *, x, y
-          !stop 5
+          stop 5
         end if
         
     end subroutine test_lambert
