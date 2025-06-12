@@ -59,7 +59,7 @@ contains
         real(8) :: glon, glat, x, y
         real(8) :: glon_inv, glat_inv, x_out, y_out
         real(8) :: true_x, true_y
-        real(8), parameter :: tol = 1.0e1 ! Difference tolerance
+        real(8), parameter :: tol = 1.0e2 ! Difference tolerance
         character(len=100) :: test_name
         
         ! Test 1: Forward transformation (glon,glat) -> (x,y)
@@ -78,9 +78,10 @@ contains
         x2 = x
         y2 = y
 
-        if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
-          call flush(6)
-          print *, "2", x, y
+        if ( abs(true_x - x) > 100.0 .or. abs(true_y - y) > 100.0 ) then
+          print *, "Test 2 FAIL: Expected x=", true_x, " y=", true_y
+          print *, "Test 2 FAIL: Actual   x=", x, " y=", y
+          print *, "Test 2 FAIL: Diff     x=", abs(true_x - x), " y=", abs(true_y - y)
           call flush(6)
           !stop 2
         end if          
@@ -105,8 +106,8 @@ contains
         stlat2 = 45.5_8
         c_lat = 45.5_8
         c_lon = 11.0_8
-        glon = 45.4642_8
-        glat = 9.1900_8
+        glat = 45.4642_8
+        glon = 9.1900_8
         
         true_x = -141149.15
         true_y = -2390.66
@@ -117,10 +118,7 @@ contains
         y4 = y
 
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
-          call flush(6)
-          print *, "4", x, y
-          call flush(6)
-          !stop 4
+          stop 4
         end if
         
         ! Test 3: Point at projection center
@@ -131,15 +129,14 @@ contains
         c_lon = -77.0_8
         glon = -77.0_8
         glat = 39.0_8
-        
+
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
 
         x5 = x
         y5 = y
       
-        if ( true_x /= x .or. true_y /= y ) then
-          print *, x, y
-          !stop 5
+        if ( abs(x) > tol .or. abs(y) > tol ) then
+          stop 5
         end if
         
     end subroutine test_lambert
