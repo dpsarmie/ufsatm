@@ -30,7 +30,7 @@ contains
         if ( trim(outfile_name(1)) /= "file1.nc" .or. &
              trim(outfile_name(2)) /= "file2.nc" .or. &
              trim(outfile_name(3)) /= "file3.nc" .or. &
-             trim(outfile_name(4)) /= "file4.nc")
+             trim(outfile_name(4)) /= "file4.nc") then
              
             stop 1
             
@@ -44,7 +44,7 @@ contains
     subroutine test_lambert()
         real(8) :: stlat1, stlat2, c_lat, c_lon
         real(8) :: glon, glat, x, y
-        real(8) :: glon_out, glat_out, x_out, y_out
+        real(8) :: glon_inv, glat_inv, x_out, y_out
         real(8) :: true_x, true_y
         real(8), parameter :: tol = 1.0e-3 ! Difference tolerance
         character(len=100) :: test_name
@@ -62,7 +62,7 @@ contains
         true_y = -12286.37
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
         
-        if ( (true_x - x) > tol .or. (true_y - y) > tol )
+        if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
           stop 2
         end if          
               
@@ -71,7 +71,7 @@ contains
         glat_inv = 0.0_8
         call lambert(stlat1, stlat2, c_lat, c_lon, glon_inv, glat_inv, x, y, -1)
         
-        if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol )
+        if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol ) then
           stop 3
         end if
         
@@ -89,7 +89,7 @@ contains
         
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
         
-        if ( (true_x - x) > tol .or. (true_y - y) > tol )
+        if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
           stop 4
         end if
         
@@ -100,7 +100,7 @@ contains
         
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
         
-        if ( true_x /= x .or. true_y /= y )
+        if ( true_x /= x .or. true_y /= y ) then
           stop 5
         end if
         
@@ -315,12 +315,10 @@ contains
         
         if (actual == expected) then
             print *, "PASS: ", trim(test_name)
-            tests_passed = tests_passed + 1
         else
             print *, "FAIL: ", trim(test_name)
             print *, "  Expected: ", expected
             print *, "  Actual: ", actual
-            tests_failed = tests_failed + 1
         end if
     end subroutine assert_equal
     
@@ -330,12 +328,10 @@ contains
         
         if (actual == expected) then
             print *, "PASS: ", trim(test_name)
-            tests_passed = tests_passed + 1
         else
             print *, "FAIL: ", trim(test_name)
             print *, "  Expected: '", trim(expected), "'"
             print *, "  Actual: '", trim(actual), "'"
-            tests_failed = tests_failed + 1
         end if
     end subroutine assert_string_equal
     
@@ -345,13 +341,11 @@ contains
         
         if (abs(actual - expected) <= tolerance) then
             print *, "PASS: ", trim(test_name)
-            tests_passed = tests_passed + 1
         else
             print *, "FAIL: ", trim(test_name)
             print *, "  Expected: ", expected
             print *, "  Actual: ", actual
             print *, "  Difference: ", abs(actual - expected)
-            tests_failed = tests_failed + 1
         end if
     end subroutine assert_real_equal
     
@@ -361,13 +355,11 @@ contains
         
         if (abs(actual - expected) <= tolerance) then
             print *, "PASS: ", trim(test_name)
-            tests_passed = tests_passed + 1
         else
             print *, "FAIL: ", trim(test_name)
             print *, "  Expected: ", expected
             print *, "  Actual: ", actual
             print *, "  Difference: ", abs(actual - expected)
-            tests_failed = tests_failed + 1
         end if
     end subroutine assert_real4_equal
     
@@ -377,11 +369,9 @@ contains
         
         if (condition) then
             print *, "PASS: ", trim(test_name)
-            tests_passed = tests_passed + 1
         else
             print *, "FAIL: ", trim(test_name)
             print *, "  Condition was false"
-            tests_failed = tests_failed + 1
         end if
     end subroutine assert_true
     
@@ -391,12 +381,10 @@ contains
         
         if (value >= min_val .and. value <= max_val) then
             print *, "PASS: ", trim(test_name)
-            tests_passed = tests_passed + 1
         else
             print *, "FAIL: ", trim(test_name)
             print *, "  Value: ", value
             print *, "  Expected range: [", min_val, ", ", max_val, "]"
-            tests_failed = tests_failed + 1
         end if
     end subroutine assert_range
     
