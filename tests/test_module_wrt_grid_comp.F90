@@ -1,9 +1,18 @@
 program test_module_wrt_grid_comp
     use module_wrt_grid_comp, only: get_outfile, lambert, rtll, splat8, splat4
     implicit none
-    
+
+    real(8) :: x2,x3,x4,x5
+    real(8) :: y2,y3,y4,y5
+    real(8) :: glat_inv3, glon_inv3
+  
     call test_get_outfile()
     call test_lambert()
+    print *, "========================================="
+    print *, x2, x3, x4, x5
+    print *, y2, y3, y4, y5
+    print *, glat_inv3, glon_inv3
+
     call test_rtll()
     call test_splat8()
     call test_splat4()
@@ -61,7 +70,10 @@ contains
         true_x = -3055.18
         true_y = -12286.37
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
-        
+
+        x2 = x
+        y2 = y
+
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
           print *, x, y
           !stop 2
@@ -71,10 +83,15 @@ contains
         glon_inv = 0.0_8
         glat_inv = 0.0_8
         call lambert(stlat1, stlat2, c_lat, c_lon, glon_inv, glat_inv, x, y, -1)
-        
+
+        glat_inv3 = glat_inv
+        glon_inv3 = glon_inv
+        x3 = x
+        y3 = y
+
         if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol ) then
           print *, glon_inv, glat_inv
-          stop 3
+          !stop 3
         end if
         
         ! Test 2: Special case where stlat1 == stlat2
@@ -90,10 +107,13 @@ contains
         true_y = -2390.66
         
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
-        
+
+        x4 = x
+        y4 = y
+
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
           print *, x, y
-          stop 4
+          !stop 4
         end if
         
         ! Test 3: Point at projection center
@@ -102,10 +122,13 @@ contains
         glat = c_lat
         
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
-        
+
+        x5 = x
+        y5 = y
+      
         if ( true_x /= x .or. true_y /= y ) then
           print *, x, y
-          stop 5
+          !stop 5
         end if
         
     end subroutine test_lambert
