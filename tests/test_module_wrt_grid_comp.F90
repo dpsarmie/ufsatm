@@ -8,11 +8,15 @@ program test_module_wrt_grid_comp
   
     call test_get_outfile()
     call test_lambert()
+    call flush(6)
     print *, "========================================="
+    call flush(6)
     print *, x2, x3, x4, x5
+    call flush(6)
     print *, y2, y3, y4, y5
+    call flush(6)
     print *, glat_inv3, glon_inv3
-
+    call flush(6)
     call test_rtll()
     call test_splat8()
     call test_splat4()
