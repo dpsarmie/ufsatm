@@ -120,7 +120,7 @@ contains
           call flush(6)
           print *, "4", x, y
           call flush(6)
-          stop 4
+          !stop 4
         end if
         
         ! Test 3: Point at projection center
