@@ -1,4 +1,4 @@
-program test_atmos_modelAdd
+program test_atmos_model
   use atmos_model_mod, only: set_fhzero_loop, InitTimeFromIAUOffset, &
                              get_atmos_tracer_types, atmos_data_type
   use GFS_typedefs, only: GFS_control_type, GFS_kind_phys => kind_phys
