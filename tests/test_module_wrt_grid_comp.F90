@@ -79,7 +79,9 @@ contains
         y2 = y
 
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
-          print *, x, y
+          call flush(6)
+          print *, "2", x, y
+          call flush(6)
           !stop 2
         end if          
               
@@ -94,7 +96,6 @@ contains
         y3 = y
 
         if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol ) then
-          print *, glon_inv, glat_inv
           stop 3
         end if
         
@@ -116,7 +117,9 @@ contains
         y4 = y
 
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
-          print *, x, y
+          call flush(6)
+          print *, "4", x, y
+          call flush(6)
           stop 4
         end if
         
