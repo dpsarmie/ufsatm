@@ -83,7 +83,7 @@ contains
           print *, "Test 2 FAIL: Actual   x=", x, " y=", y
           print *, "Test 2 FAIL: Diff     x=", abs(true_x - x), " y=", abs(true_y - y)
           call flush(6)
-          !stop 2
+          stop 2
         end if          
               
         ! Test inverse transformation
