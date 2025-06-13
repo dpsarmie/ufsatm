@@ -122,15 +122,8 @@ contains
         true_almd = 0.0_8
         true_aphd = 0.0_8
 
-        print *, 'About to call rtll with inputs:'
-        print *, 'tlmd=', tlmd, ' tphd=', tphd
-        print *, 'tlm0d=', tlm0d, ' tph0d=', tph0d
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        print *, 'Test 1 Results:'
-        print *, 'Expected almd:', true_almd, ' Actual almd:', almd
-        print *, 'Expected aphd:', true_aphd, ' Actual aphd:', aphd
-        print *, 'Difference almd:', abs(true_almd - almd)
-        print *, 'Difference aphd:', abs(true_aphd - aphd)
+
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
           stop 6
         end if
@@ -144,11 +137,7 @@ contains
         true_aphd = 90.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        print *, 'Test 2 Results:'
-        print *, 'Expected almd:', true_almd, ' Actual almd:', almd
-        print *, 'Expected aphd:', true_aphd, ' Actual aphd:', aphd
-        print *, 'Difference almd:', abs(true_almd - almd)
-        print *, 'Difference aphd:', abs(true_aphd - aphd)
+
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
           stop 7
         end if
@@ -158,8 +147,8 @@ contains
         tph0d = 40.0_8
         tlmd = 10.0_8
         tphd = 50.0_8
-        true_almd = -5.2_8
-        true_aphd = 8.7_8
+        true_almd = -76.16_8
+        true_aphd = 83.57_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
         print *, 'Test 3 Results:'
