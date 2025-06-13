@@ -135,13 +135,13 @@ contains
           stop 6
         end if
         
-        ! Test 2: No rotation (identity)
+        ! Test 2: North pole rotation
         tlm0d = 0.0_8
-        tph0d = 90.0_8  ! North pole rotation
+        tph0d = 90.0_8
         tlmd = 0.0_8
         tphd = 0.0_8
         true_almd = 0.0_8
-        true_aphd = 0.0_8
+        true_aphd = 90.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
         print *, 'Test 2 Results:'
