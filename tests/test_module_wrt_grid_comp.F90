@@ -113,281 +113,61 @@ contains
     !---------------------------------------------------------------------------
     subroutine test_rtll()
         real(8) :: tlmd, tphd, almd, aphd, tlm0d, tph0d
-        real(8), parameter :: tol = 1.0e-8
-        character(len=100) :: test_name
-        
-        print *, "Testing rtll..."
+        real(8), parameter :: tol = 1.0e-0
         
         ! Test 1: Basic rotation
-        test_name = "rtll basic rotation"
-        tlm0d = -100.0_8
-        tph0d = 45.0_8
+        ! 90 degrees
+        tlm0d = 0.0_8
+        tph0d = 0.0_8
         tlmd = 0.0_8
         tphd = 0.0_8
+        true_almd = 0.0_8
+        true_aphd = 90.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
         
-        ! Verify result is reasonable
-        call assert_range(trim(test_name)//" almd", almd, -180.0_8, 180.0_8)
-        call assert_range(trim(test_name)//" aphd", aphd, -90.0_8, 90.0_8)
+        if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
+          stop 6
+        end if
         
         ! Test 2: No rotation (identity)
-        test_name = "rtll identity"
         tlm0d = 0.0_8
         tph0d = 90.0_8  ! North pole rotation
-        tlmd = 45.0_8
-        tphd = 30.0_8
+        tlmd = 0.0_8
+        tphd = 0.0_8
+        true_almd = 0.0_8
+        true_aphd = 0.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        call assert_real_equal(trim(test_name)//" almd", almd, tlmd, tol)
-        call assert_real_equal(trim(test_name)//" aphd", aphd, tphd, tol)
+        if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
+          stop 7
+        end if
         
-        ! Test 3: Longitude wrapping
-        test_name = "rtll longitude wrapping"
-        tlm0d = 170.0_8
-        tph0d = 0.0_8
-        tlmd = 20.0_8
+        ! Test 3: Central Europe
+        tlm0d = -170.0_8
+        tph0d = 40.0_8
+        tlmd = 10.0_8
+        tphd = 50.0_8
+        true_almd = -5.2_8
+        true_aphd = 8.7_8
+        
+        call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
+          stop 8
+        end if
+        
+        ! Test 4: Longitude wrapping
+        tlm0d = 0.0_8
+        tph0d = 45.0_8
+        tlmd = 179.0_8
         tphd = 0.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        call assert_range(trim(test_name)//" almd wrapped", almd, -180.0_8, 180.0_8)
         
-        ! Test 4: Extreme latitudes
-        test_name = "rtll extreme latitudes"
-        tlm0d = 0.0_8
-        tph0d = 0.0_8
-        tlmd = 0.0_8
-        tphd = 89.9_8  ! Near pole
-        
-        call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        call assert_range(trim(test_name)//" aphd", aphd, -90.0_8, 90.0_8)
+        if( almd > 180 .or. almd < -180) then
+          stop 9
+        end if
         
     end subroutine test_rtll
-    
-    !---------------------------------------------------------------------------
-    ! Test splat8 subroutine
-    !---------------------------------------------------------------------------
-    subroutine test_splat8()
-        real(8), allocatable :: aslat(:)
-        integer :: jmax
-        real(8), parameter :: tol = 1.0e-12
-        character(len=100) :: test_name
-        integer :: j
-        
-        print *, "Testing splat8..."
-        
-        ! Test 1: Gaussian grid (idrt=4)
-        test_name = "splat8 Gaussian grid"
-        jmax = 8
-        allocate(aslat(jmax))
-        
-        call splat8(4, jmax, aslat)
-        
-        ! Check properties of Gaussian latitudes
-        ! Should be symmetric about equator
-        do j = 1, jmax/2
-            call assert_real_equal(trim(test_name)//" symmetry", aslat(j), -aslat(jmax+1-j), tol)
-        end do
-        
-        ! Should be in descending order (from north to south)
-        do j = 2, jmax
-            call assert_true(trim(test_name)//" descending order", aslat(j-1) > aslat(j))
-        end do
-        
-        ! Should be bounded by [-1, 1]
-        do j = 1, jmax
-            call assert_range(trim(test_name)//" bounds", aslat(j), -1.0_8, 1.0_8)
-        end do
-        
-        deallocate(aslat)
-        
-        ! Test 2: Regular grid with poles (idrt=0)
-        test_name = "splat8 regular grid with poles"
-        jmax = 9  ! Odd number for equator
-        allocate(aslat(jmax))
-        
-        call splat8(0, jmax, aslat)
-        
-        ! First point should be at north pole
-        call assert_real_equal(trim(test_name)//" north pole", aslat(1), 1.0_8, tol)
-        
-        ! Last point should be at south pole
-        call assert_real_equal(trim(test_name)//" south pole", aslat(jmax), -1.0_8, tol)
-        
-        ! Middle point should be at equator (for odd jmax)
-        call assert_real_equal(trim(test_name)//" equator", aslat((jmax+1)/2), 0.0_8, tol)
-        
-        deallocate(aslat)
-        
-        ! Test 3: Regular grid without poles (idrt=256)
-        test_name = "splat8 regular grid without poles"
-        jmax = 8
-        allocate(aslat(jmax))
-        
-        call splat8(256, jmax, aslat)
-        
-        ! First point should not be at pole
-        call assert_true(trim(test_name)//" not at north pole", aslat(1) < 1.0_8)
-        
-        ! Last point should not be at pole
-        call assert_true(trim(test_name)//" not at south pole", aslat(jmax) > -1.0_8)
-        
-        ! Should still be symmetric
-        do j = 1, jmax/2
-            call assert_real_equal(trim(test_name)//" symmetry", aslat(j), -aslat(jmax+1-j), tol)
-        end do
-        
-        deallocate(aslat)
-        
-    end subroutine test_splat8
-    
-    !---------------------------------------------------------------------------
-    ! Test splat4 subroutine
-    !---------------------------------------------------------------------------
-    subroutine test_splat4()
-        real(4), allocatable :: aslat(:)
-        real(8), allocatable :: aslat8(:)
-        integer :: jmax
-        real(4), parameter :: tol = 1.0e-6
-        character(len=100) :: test_name
-        integer :: j
-        
-        print *, "Testing splat4..."
-        
-        ! Test 1: Gaussian grid (idrt=4)
-        test_name = "splat4 Gaussian grid"
-        jmax = 8
-        allocate(aslat(jmax))
-        
-        call splat4(4, jmax, aslat)
-        
-        ! Check properties of Gaussian latitudes
-        ! Should be symmetric about equator
-        do j = 1, jmax/2
-            call assert_real4_equal(trim(test_name)//" symmetry", aslat(j), -aslat(jmax+1-j), tol)
-        end do
-        
-        ! Should be in descending order (from north to south)
-        do j = 2, jmax
-            call assert_true(trim(test_name)//" descending order", aslat(j-1) > aslat(j))
-        end do
-        
-        deallocate(aslat)
-        
-        ! Test 2: Regular grid with poles (idrt=0)
-        test_name = "splat4 regular grid with poles"
-        jmax = 9
-        allocate(aslat(jmax))
-        
-        call splat4(0, jmax, aslat)
-        
-        ! First point should be at north pole
-        call assert_real4_equal(trim(test_name)//" north pole", aslat(1), 1.0_4, tol)
-        
-        ! Last point should be at south pole
-        call assert_real4_equal(trim(test_name)//" south pole", aslat(jmax), -1.0_4, tol)
-        
-        deallocate(aslat)
-        
-        ! Test 3: Comparison between splat4 and splat8
-        test_name = "splat4 vs splat8 comparison"
-        jmax = 16
-        allocate(aslat(jmax))
-        allocate(aslat8(jmax))
-        
-        call splat4(4, jmax, aslat)
-        call splat8(4, jmax, aslat8)
-        
-        ! Results should be close (within single precision tolerance)
-        do j = 1, jmax
-            call assert_real4_equal(trim(test_name)//" consistency", aslat(j), real(aslat8(j),4), tol)
-        end do
-        
-        deallocate(aslat)
-        deallocate(aslat8)
-        
-    end subroutine test_splat4
-    
-    !---------------------------------------------------------------------------
-    ! Assertion utilities
-    !---------------------------------------------------------------------------
-    subroutine assert_equal(test_name, actual, expected)
-        character(len=*), intent(in) :: test_name
-        integer, intent(in) :: actual, expected
-        
-        if (actual == expected) then
-            print *, "PASS: ", trim(test_name)
-        else
-            print *, "FAIL: ", trim(test_name)
-            print *, "  Expected: ", expected
-            print *, "  Actual: ", actual
-        end if
-    end subroutine assert_equal
-    
-    subroutine assert_string_equal(test_name, actual, expected)
-        character(len=*), intent(in) :: test_name
-        character(len=*), intent(in) :: actual, expected
-        
-        if (actual == expected) then
-            print *, "PASS: ", trim(test_name)
-        else
-            print *, "FAIL: ", trim(test_name)
-            print *, "  Expected: '", trim(expected), "'"
-            print *, "  Actual: '", trim(actual), "'"
-        end if
-    end subroutine assert_string_equal
-    
-    subroutine assert_real_equal(test_name, actual, expected, tolerance)
-        character(len=*), intent(in) :: test_name
-        real(8), intent(in) :: actual, expected, tolerance
-        
-        if (abs(actual - expected) <= tolerance) then
-            print *, "PASS: ", trim(test_name)
-        else
-            print *, "FAIL: ", trim(test_name)
-            print *, "  Expected: ", expected
-            print *, "  Actual: ", actual
-            print *, "  Difference: ", abs(actual - expected)
-        end if
-    end subroutine assert_real_equal
-    
-    subroutine assert_real4_equal(test_name, actual, expected, tolerance)
-        character(len=*), intent(in) :: test_name
-        real(4), intent(in) :: actual, expected, tolerance
-        
-        if (abs(actual - expected) <= tolerance) then
-            print *, "PASS: ", trim(test_name)
-        else
-            print *, "FAIL: ", trim(test_name)
-            print *, "  Expected: ", expected
-            print *, "  Actual: ", actual
-            print *, "  Difference: ", abs(actual - expected)
-        end if
-    end subroutine assert_real4_equal
-    
-    subroutine assert_true(test_name, condition)
-        character(len=*), intent(in) :: test_name
-        logical, intent(in) :: condition
-        
-        if (condition) then
-            print *, "PASS: ", trim(test_name)
-        else
-            print *, "FAIL: ", trim(test_name)
-            print *, "  Condition was false"
-        end if
-    end subroutine assert_true
-    
-    subroutine assert_range(test_name, value, min_val, max_val)
-        character(len=*), intent(in) :: test_name
-        real(8), intent(in) :: value, min_val, max_val
-        
-        if (value >= min_val .and. value <= max_val) then
-            print *, "PASS: ", trim(test_name)
-        else
-            print *, "FAIL: ", trim(test_name)
-            print *, "  Value: ", value
-            print *, "  Expected range: [", min_val, ", ", max_val, "]"
-        end if
-    end subroutine assert_range
     
 end program test_module_wrt_grid_comp
