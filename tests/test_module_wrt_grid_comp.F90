@@ -113,6 +113,7 @@ contains
     !---------------------------------------------------------------------------
     subroutine test_rtll()
         real(8) :: tlmd, tphd, almd, aphd, tlm0d, tph0d
+        real(8) :: true_almd, true_aphd
         real(8), parameter :: tol = 1.0e-0
         
         ! Test 1: Basic rotation
