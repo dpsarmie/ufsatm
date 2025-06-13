@@ -122,7 +122,10 @@ contains
         tphd = 0.0_8
         true_almd = 0.0_8
         true_aphd = 90.0_8
-        
+
+        print *, 'About to call rtll with inputs:'
+        print *, 'tlmd=', tlmd, ' tphd=', tphd
+        print *, 'tlm0d=', tlm0d, ' tph0d=', tph0d
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
         print *, 'Test 1 Results:'
         print *, 'Expected almd:', true_almd, ' Actual almd:', almd
@@ -130,7 +133,7 @@ contains
         print *, 'Difference almd:', abs(true_almd - almd)
         print *, 'Difference aphd:', abs(true_aphd - aphd)
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
-          !stop 6
+          stop 6
         end if
         
         ! Test 2: No rotation (identity)
@@ -148,7 +151,7 @@ contains
         print *, 'Difference almd:', abs(true_almd - almd)
         print *, 'Difference aphd:', abs(true_aphd - aphd)
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
-          !stop 7
+          stop 7
         end if
         
         ! Test 3: Central Europe
