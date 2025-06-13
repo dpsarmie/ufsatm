@@ -114,14 +114,13 @@ contains
         real(8) :: true_almd, true_aphd
         real(8), parameter :: tol = 1.0e-0
         
-        ! Test 1: Basic rotation
-        ! 90 degrees
+        ! Test 1: No rotation
         tlm0d = 0.0_8
         tph0d = 0.0_8
         tlmd = 0.0_8
         tphd = 0.0_8
         true_almd = 0.0_8
-        true_aphd = 90.0_8
+        true_aphd = 0.0_8
 
         print *, 'About to call rtll with inputs:'
         print *, 'tlmd=', tlmd, ' tphd=', tphd
@@ -169,7 +168,7 @@ contains
         print *, 'Difference almd:', abs(true_almd - almd)
         print *, 'Difference aphd:', abs(true_aphd - aphd)
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
-          !stop 8
+          stop 8
         end if
         
         ! Test 4: Longitude wrapping
@@ -183,7 +182,7 @@ contains
         print *, 'almd:', almd, ' aphd:', aphd
         print *, 'Within bounds check: almd between -180 and 180?', (almd >= -180.0 .and. almd <= 180.0)
         if( almd > 180 .or. almd < -180) then
-          !stop 9
+          stop 9
         end if
         
     end subroutine test_rtll
