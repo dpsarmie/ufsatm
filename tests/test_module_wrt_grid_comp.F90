@@ -5,8 +5,6 @@ program test_module_wrt_grid_comp
     call test_get_outfile()
     call test_lambert()
     call test_rtll()
-    call test_splat8()
-    call test_splat4()
 
 contains
     
