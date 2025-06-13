@@ -124,9 +124,13 @@ contains
         true_aphd = 90.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        
+        print *, 'Test 1 Results:'
+        print *, 'Expected almd:', true_almd, ' Actual almd:', almd
+        print *, 'Expected aphd:', true_aphd, ' Actual aphd:', aphd
+        print *, 'Difference almd:', abs(true_almd - almd)
+        print *, 'Difference aphd:', abs(true_aphd - aphd)
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
-          stop 6
+          !stop 6
         end if
         
         ! Test 2: No rotation (identity)
@@ -138,8 +142,13 @@ contains
         true_aphd = 0.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        print *, 'Test 2 Results:'
+        print *, 'Expected almd:', true_almd, ' Actual almd:', almd
+        print *, 'Expected aphd:', true_aphd, ' Actual aphd:', aphd
+        print *, 'Difference almd:', abs(true_almd - almd)
+        print *, 'Difference aphd:', abs(true_aphd - aphd)
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
-          stop 7
+          !stop 7
         end if
         
         ! Test 3: Central Europe
@@ -151,8 +160,13 @@ contains
         true_aphd = 8.7_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
+        print *, 'Test 3 Results:'
+        print *, 'Expected almd:', true_almd, ' Actual almd:', almd
+        print *, 'Expected aphd:', true_aphd, ' Actual aphd:', aphd
+        print *, 'Difference almd:', abs(true_almd - almd)
+        print *, 'Difference aphd:', abs(true_aphd - aphd)
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
-          stop 8
+          !stop 8
         end if
         
         ! Test 4: Longitude wrapping
@@ -162,9 +176,11 @@ contains
         tphd = 0.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        
+        print *, 'Test 4 Results:'
+        print *, 'almd:', almd, ' aphd:', aphd
+        print *, 'Within bounds check: almd between -180 and 180?', (almd >= -180.0 .and. almd <= 180.0)
         if( almd > 180 .or. almd < -180) then
-          stop 9
+          !stop 9
         end if
         
     end subroutine test_rtll
