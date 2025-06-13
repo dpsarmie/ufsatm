@@ -70,9 +70,6 @@ contains
         glat_inv = 0.0_8
         call lambert(stlat1, stlat2, c_lat, c_lon, glon_inv, glat_inv, x, y, -1)
 
-        glat_inv3 = glat_inv
-        glon_inv3 = glon_inv
-
         if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol ) then
           stop 3
         end if
@@ -96,7 +93,6 @@ contains
         end if
         
         ! Test 3: Point at projection center
-        test_name = "lambert at projection center"
         stlat1 = 38.5_8
         stlat2 = 39.5_8
         c_lat = 39.0_8
