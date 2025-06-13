@@ -151,11 +151,7 @@ contains
         true_aphd = 83.57_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        print *, 'Test 3 Results:'
-        print *, 'Expected almd:', true_almd, ' Actual almd:', almd
-        print *, 'Expected aphd:', true_aphd, ' Actual aphd:', aphd
-        print *, 'Difference almd:', abs(true_almd - almd)
-        print *, 'Difference aphd:', abs(true_aphd - aphd)
+
         if( abs(true_almd - almd) > tol .or. abs(true_aphd - aphd) > tol) then
           stop 8
         end if
@@ -167,9 +163,7 @@ contains
         tphd = 0.0_8
         
         call rtll(tlmd, tphd, almd, aphd, tlm0d, tph0d)
-        print *, 'Test 4 Results:'
-        print *, 'almd:', almd, ' aphd:', aphd
-        print *, 'Within bounds check: almd between -180 and 180?', (almd >= -180.0 .and. almd <= 180.0)
+
         if( almd > 180 .or. almd < -180) then
           stop 9
         end if
