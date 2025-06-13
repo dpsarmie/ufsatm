@@ -1,22 +1,9 @@
 program test_module_wrt_grid_comp
     use module_wrt_grid_comp, only: get_outfile, lambert, rtll, splat8, splat4
     implicit none
-
-    real(8) :: x2,x3,x4,x5
-    real(8) :: y2,y3,y4,y5
-    real(8) :: glat_inv3, glon_inv3
   
     call test_get_outfile()
     call test_lambert()
-    call flush(6)
-    print *, "========================================="
-    call flush(6)
-    print *, x2, x3, x4, x5
-    call flush(6)
-    print *, y2, y3, y4, y5
-    call flush(6)
-    print *, glat_inv3, glon_inv3
-    call flush(6)
     call test_rtll()
     call test_splat8()
     call test_splat4()
@@ -60,7 +47,6 @@ contains
         real(8) :: glon_inv, glat_inv, x_out, y_out
         real(8) :: true_x, true_y
         real(8), parameter :: tol = 1.0e2 ! Difference tolerance
-        character(len=100) :: test_name
         
         ! Test 1: Forward transformation (glon,glat) -> (x,y)
         ! National mall, Washington DC
@@ -75,14 +61,7 @@ contains
         true_y = -12286.37
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
 
-        x2 = x
-        y2 = y
-
-        if ( abs(true_x - x) > 100.0 .or. abs(true_y - y) > 100.0 ) then
-          print *, "Test 2 FAIL: Expected x=", true_x, " y=", true_y
-          print *, "Test 2 FAIL: Actual   x=", x, " y=", y
-          print *, "Test 2 FAIL: Diff     x=", abs(true_x - x), " y=", abs(true_y - y)
-          call flush(6)
+        if ( abs(true_x - x) > tol .or. abs(true_y - y) > tol ) then
           stop 2
         end if          
               
@@ -93,8 +72,6 @@ contains
 
         glat_inv3 = glat_inv
         glon_inv3 = glon_inv
-        x3 = x
-        y3 = y
 
         if ( (glon - glon_inv) > tol .or. (glat - glat_inv) > tol ) then
           stop 3
@@ -114,9 +91,6 @@ contains
         
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
 
-        x4 = x
-        y4 = y
-
         if ( (true_x - x) > tol .or. (true_y - y) > tol ) then
           stop 4
         end if
@@ -131,11 +105,8 @@ contains
         glat = 39.0_8
 
         call lambert(stlat1, stlat2, c_lat, c_lon, glon, glat, x, y, 1)
-
-        x5 = x
-        y5 = y
       
-        if ( abs(x) > tol .or. abs(y) > tol ) then
+        if ( abs(x) > 1e-3 .or. abs(y) > 1e-3 ) then
           stop 5
         end if
         
