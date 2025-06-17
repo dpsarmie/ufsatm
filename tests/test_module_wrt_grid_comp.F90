@@ -25,11 +25,11 @@ contains
         filename(1,3) = 'file4.nc'
         
         call get_outfile(3, filename, outfile_name, noutfile)
-        if ( trim(outfile_name(1)) /= "file1.nc" .or. &
-             trim(outfile_name(2)) /= "file2.nc" .or. &
-             trim(outfile_name(3)) /= "file3.nc" .or. &
-             trim(outfile_name(4)) /= "file4.nc") then
-             
+        if ( trim(outfile_name(1)) /= "qfile1.nc" .or. &
+             trim(outfile_name(2)) /= "qfile2.nc" .or. &
+             trim(outfile_name(3)) /= "qfile3.nc" .or. &
+             trim(outfile_name(4)) /= "qfile4.nc") then
+            print *, "Filename trim function not working as intended" 
             stop 1
             
         end if
