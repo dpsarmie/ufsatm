@@ -39,15 +39,18 @@ contains
     
     if (size(output_fh) /= expected_size) then
     !Expected size should be 9
+      print *, "Size of generated output_fh is incorrect"
       stop 1
     end if
     if (abs(output_fh(1) - dt_atmos/3600.0) > 1e-6) then
       !First output should be dt_atmos/3600
+      print *, "First output time is incorrect"
       stop 2
     end if
     ! lflname_fulltime should be false
     if (lflname_fulltime) then
       !Excluding first element, output_fh are all integers
+      print *, "lflname_fulltime bool set incorrectly"
       stop 3
     end if
     
@@ -66,17 +69,20 @@ contains
     
     !Expected size should be 8
     if (size(output_fh) /= expected_size) then
+      print *, "Size of generated output_fh is incorrect"
       stop 4
     end if
     
     ! First value (should be 6.0)
     if (abs(output_fh(1) - 6.0) > 1e-6) then
+      print *, "First output time is incorrect"
       stop 5
     end if
       
     ! lflname_fulltime should be false
     if (lflname_fulltime) then
       !Excluding first element, output_fh are all integers
+      print *, "lflname_fulltime bool set incorrectly"
       stop 6
     end if
     
@@ -95,6 +101,7 @@ contains
  
     ! Check lflname_fulltime, should be True since non-integer values exist
     if (.not. lflname_fulltime) then
+      print *, "lflname_fulltime bool set incorrectly"
       stop 7
     end if
 
@@ -110,6 +117,7 @@ contains
 
     ! output_fh should not allocate when nfhmax == output_startfh
     if (allocated(output_fh)) then
+      print *, "output_fh was allocated when output start time was equal to nfmax"
       stop 8
     end if
     
@@ -131,12 +139,14 @@ contains
     
     ! Check first value. Should be dt_atmos/3600
     if (abs(output_fh(1) - dt_atmos/3600.0) > 1e-6) then
+      print *, "First output time is incorrect"
       stop 9
     end if
     
     ! Check lflname_fulltime, should be false
     !Excluding first element, output_fh are all integers
     if (lflname_fulltime) then
+      print *, "lflname_fulltime bool set incorrectly"
       stop 10
     end if
     
@@ -157,11 +167,13 @@ contains
         abs(output_fh(2) - 12.0) > 1e-6 .or. &
         abs(output_fh(3) - 18.0) > 1e-6 .or. &
         abs(output_fh(4) - 24.0) > 1e-6) then
+      print *, "output_fh array values were not shifted correctly or not allocated correctly"
       stop 11
     end if
     
     ! Check lflname_fulltime (should be false)
     if (lflname_fulltime) then
+      print *, "lflname_fulltime bool set incorrectly"
       stop 12
     end if
     
@@ -182,9 +194,8 @@ contains
     
     ! Check lflname_fulltime (should be true)
     if (.not. lflname_fulltime) then
+      print *, "lflname_fulltime bool set incorrectly"
       stop 13
-    else
-      print *, '  lflname_fulltime correctly set to true'
     end if
     
     !============================================
@@ -203,11 +214,13 @@ contains
     if (abs(output_fh(1) - 0.5) > 1e-6 .or. &
         abs(output_fh(2) - 3.5) > 1e-6 .or. &
         abs(output_fh(3) - 6.5) > 1e-6) then
+      print *, "output_fh array values were not shifted correctly or not allocated correctly"
       stop 14
     end if
     
     ! Check lflname_fulltime (should be true)
     if (.not. lflname_fulltime) then
+      print *, "lflname_fulltime bool set incorrectly"
       stop 15
     end if
     

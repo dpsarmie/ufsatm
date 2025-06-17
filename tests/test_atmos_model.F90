@@ -50,6 +50,7 @@ contains
     call set_fhzero_loop(sec, sec_lastfhzerofh)
     
     if (GFS_control%fhzero /= 6.0_GFS_kind_phys .or. sec_lastfhzerofh /= 0) then
+      print *, "Incorrect handling of single fhzero value"
       stop 1
     end if
 
@@ -67,6 +68,7 @@ contains
     call set_fhzero_loop(sec, sec_lastfhzerofh)
     
     if (GFS_control%fhzero /= 3.0_GFS_kind_phys) then
+      print *, "Incorrect handling of fhzero array"
       stop 2
     end if
     
@@ -75,6 +77,7 @@ contains
     call set_fhzero_loop(sec, sec_lastfhzerofh)
     
     if (GFS_control%fhzero /= 6.0_GFS_kind_phys) then
+      print *, "Incorrect handling of fhzero array"
       stop 3
     end if
     
@@ -91,6 +94,7 @@ contains
     call set_fhzero_loop(sec, sec_lastfhzerofh)
     
     if (sec_lastfhzerofh /= 0) then
+      print *, "Incorrect handling of fh = 0 case"
       stop 4
     end if
 
@@ -126,6 +130,7 @@ contains
     tracer_types = 0
     
     if (any(tracer_types /= 0)) then
+      print *, "Tracer type array being rewritten"
       stop 5
     end if
     
@@ -148,16 +153,19 @@ contains
 
     ! Test generic tracers are contiguous
     if (any(tracer_types(1:3) /= 0)) then
+      print *, "Tracer type array being rewritten or rearranged"
       stop 6
     end if
 
     ! Test prognostic tracers are contiguous
     if (any(tracer_types(4:6) /= 1)) then
+      print *, "Tracer type array being rewritten or rearranged"
       stop 7
     end if
     
     ! Test diagnostic tracers are contiguous
     if (any(tracer_types(7:8) /= 2)) then
+      print *, "Tracer type array being rewritten or rearranged"
       stop 8
     end if
     
@@ -174,6 +182,7 @@ contains
     tracer_types = 0
     
     if (size(tracer_types) /= 100) then
+      print *, "Tracer type array missing values when array is large"
       stop 9
     end if
     
