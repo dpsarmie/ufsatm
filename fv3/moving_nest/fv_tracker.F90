@@ -131,17 +131,17 @@ module fv_tracker_mod
     logical :: tracker_gave_up = .false. !< True = inline tracker gave up on tracking the storm
   end type fv_tracker_type
 
-  !> ???
+  !> Tracker instances
   type(fv_tracker_type), _ALLOCATABLE, target :: Tracker(:)
   !> Number of nests
   integer :: n = 2 ! TODO allow to vary for multiple nests
-  integer :: id_fv_tracker !< ???
+  integer :: id_fv_tracker !< Timing id for tracker
 
 contains
 
   !> @brief Initialize tracker variables in the Atm structure.
   !>
-  !> @param[in] length ???
+  !> @param[in] length Number of tracker instances
   !>
   !> @author
   subroutine fv_tracker_init(length)
@@ -184,11 +184,11 @@ contains
 
   !> @brief Allocate internal vortex tracker arrays
   !>
-  !> @param[in] i ???
-  !> @param[in] is ???
-  !> @param[in] ie ???
-  !> @param[in] js ???
-  !> @param[in] je ???
+  !> @param[in] i index
+  !> @param[in] is i-coordinate start
+  !> @param[in] ie i-coordinate end
+  !> @param[in] js j-coordinate start
+  !> @param[in] je j-coordinate end
   !>
   !> @author
   subroutine allocate_tracker(i, is, ie, js, je)
@@ -218,7 +218,7 @@ contains
 
   !> @brief Deallocate internal vortex tracker arrays
   !>
-  !> @param[in] nn ???
+  !> @param[in] nn Number of tracker instances
   !>
   !> @author
   subroutine deallocate_tracker(nn)
@@ -249,13 +249,13 @@ contains
 
   end subroutine deallocate_tracker
 
-  !> ???
+  !> @brief Determine if current grid is a moving nest
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] mygrid ???
-  !> @param[in] ngrids ???
-  !> @param[out] is_moving_nest ???
-  !> @param[out] moving_nest_parent ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] mygrid Current grid
+  !> @param[in] ngrids Number of grids
+  !> @param[out] is_moving_nest Logical if grid is moving nest
+  !> @param[out] moving_nest_parent Logical if child grid is moving
   !>
   !> @author
   subroutine check_is_moving_nest(Atm, mygrid, ngrids, is_moving_nest, moving_nest_parent)
@@ -282,12 +282,12 @@ contains
 
   end subroutine check_is_moving_nest
 
-  !> ???
+  !> @brief Execute vortex tracker
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] mygrid ???
-  !> @param[in] Time ???
-  !> @param[in] Time_step ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] mygrid Current grid
+  !> @param[in] Time Current model time
+  !> @param[in] Time_step Model timestep
   !>
   !> @author
   subroutine execute_tracker(Atm, mygrid, Time, Time_step)
@@ -329,11 +329,11 @@ contains
 
   end subroutine execute_tracker
 
-  !> ???
+  !> @brief Find vortex center
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] n ???
-  !> @param[in] Time ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] n Grid number
+  !> @param[in] Time Current model time
   !>
   !> @author
   subroutine fv_tracker_center(Atm, n, Time)
@@ -364,11 +364,11 @@ contains
 
   end subroutine fv_tracker_center
 
-  !> ???
+  !> @brief Populate fields needed for tracking
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] zvir ???
-  !> @param[in] Time ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] zvir Correction factor [(RVGAS/RDGAS) - 1.0]
+  !> @param[in] Time Current model time
   !>
   !> @author
   subroutine fv_diag_tracker(Atm, zvir, Time)
@@ -488,29 +488,29 @@ contains
 
   end subroutine fv_diag_tracker
 
-  !> ???
+  !> @brief Main subroutine for the vortex tracker
   !>
-  !> @param[inout] Atm ???
-  !> @param[inout] tracker ???
-  !> @param[in] Time ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] ips ???
-  !> @param[in] ipe ???
-  !> @param[in] jps ???
-  !> @param[in] jpe ???
-  !> @param[in] kps ???
-  !> @param[in] kpe ???
+  !> @param[inout] Atm  Array of atmospheric data
+  !> @param[inout] tracker Tracker data
+  !> @param[in] Time Current model time
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] ips i-coordinate start (patch)
+  !> @param[in] ipe i-coordinate end (patch)
+  !> @param[in] jps j-coordinate start (patch)
+  !> @param[in] jpe j-coordinate end (patch)
+  !> @param[in] kps k-coordinate start (patch)
+  !> @param[in] kpe k-coordinate end (patch)
   !>
   !> @author
   subroutine ntc_impl(Atm,tracker,Time, &
@@ -807,27 +807,27 @@ contains
 
   end subroutine ntc_impl
 
-  !> ???
+  !> @brief Get coordinate boundaries
   !>
-  !> @param[in] Atm ???
-  !> @param[out] ids ???
-  !> @param[out] ide ???
-  !> @param[out] jds ???
-  !> @param[out] jde ???
-  !> @param[out] kds ???
-  !> @param[out] kde ???
-  !> @param[out] ims ???
-  !> @param[out] ime ???
-  !> @param[out] jms ???
-  !> @param[out] jme ???
-  !> @param[out] kms ???
-  !> @param[out] kme ???
-  !> @param[out] ips ???
-  !> @param[out] ipe ???
-  !> @param[out] jps ???
-  !> @param[out] jpe ???
-  !> @param[out] kps ???
-  !> @param[out] kpe ???
+  !> @param[in] Atm Array of atmospheric data
+  !> @param[out] ids i-coordinate start (domain)
+  !> @param[out] ide i-coordinate end (domain)
+  !> @param[out] jds j-coordinate start (domain)
+  !> @param[out] jde j-coordinate end (domain)
+  !> @param[out] kds k-coordinate start (domain)
+  !> @param[out] kde k-coordinate end (domain)
+  !> @param[out] ims i-coordinate start (memory)
+  !> @param[out] ime i-coordinate end (memory)
+  !> @param[out] jms j-coordinate start (memory)
+  !> @param[out] jme j-coordinate end (memory)
+  !> @param[out] kms k-coordinate start (memory)
+  !> @param[out] kme k-coordinate end (memory)
+  !> @param[out] ips i-coordinate start (patch)
+  !> @param[out] ipe i-coordinate end (patch)
+  !> @param[out] jps j-coordinate start (patch)
+  !> @param[out] jpe j-coordinate end (patch)
+  !> @param[out] kps k-coordinate start (patch)
+  !> @param[out] kpe k-coordinate end (patch)
   !>
   !> @author
   subroutine get_ijk_from_domain(Atm,  &
@@ -856,34 +856,34 @@ contains
     kpe = Atm%npz
   end subroutine get_ijk_from_domain
 
-  !> ???
+  !> @brief Find i,j coordinates from lon,lat
   !>
-  !> @param[inout] Atm ???
-  !> @param[out] iloc ???
-  !> @param[out] jloc ???
-  !> @param[out] ierr ???
-  !> @param[in] lon ???
-  !> @param[in] lat ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] ips ???
-  !> @param[in] ipe ???
-  !> @param[in] jps ???
-  !> @param[in] jpe ???
-  !> @param[in] kps ???
-  !> @param[in] kpe ???
-  !> @param[out] lonnear ???
-  !> @param[out] latnear ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[out] iloc i point of output
+  !> @param[out] jloc j point of output
+  !> @param[out] ierr Error code
+  !> @param[in] lon Longitude
+  !> @param[in] lat Latitude
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] ips i-coordinate start (patch)
+  !> @param[in] ipe i-coordinate end (patch)
+  !> @param[in] jps j-coordinate start (patch)
+  !> @param[in] jpe j-coordinate end (patch)
+  !> @param[in] kps k-coordinate start (patch)
+  !> @param[in] kpe k-coordinate end (patch)
+  !> @param[out] lonnear Longitude of output grid point
+  !> @param[out] latnear Latitude of output grid point
   !>
   !> @author
   subroutine get_nearest_lonlat(Atm,iloc,jloc,ierr,lon,lat, &
@@ -936,28 +936,28 @@ contains
     if(present(lonnear)) lonnear=lonmin
   end subroutine get_nearest_lonlat
 
-  !> ???
+  !> @brief Generate output to ATCF format
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] Time ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] its ???
-  !> @param[in] ite ???
-  !> @param[in] jts ???
-  !> @param[in] jte ???
-  !> @param[in] kts ???
-  !> @param[in] kte ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] Time Current model time
+  !> @param[in] ids i-coordinate start
+  !> @param[in] ide i-coordinate end
+  !> @param[in] jds j-coordinate start
+  !> @param[in] jde j-coordinate end
+  !> @param[in] kds k-coordinate start
+  !> @param[in] kde k-coordinate end
+  !> @param[in] ims i-coordinate start
+  !> @param[in] ime i-coordinate end
+  !> @param[in] jms j-coordinate start
+  !> @param[in] jme j-coordinate end
+  !> @param[in] kms k-coordinate start
+  !> @param[in] kme k-coordinate end
+  !> @param[in] its i-coordinate start
+  !> @param[in] ite i-coordinate end
+  !> @param[in] jts j-coordinate start
+  !> @param[in] jte j-coordinate end
+  !> @param[in] kts k-coordinate start
+  !> @param[in] kte k-coordinate end
   !>
   !> @author
   subroutine output_partial_atcfunix(Atm,Time, &
@@ -996,34 +996,34 @@ contains
     end if
   end subroutine output_partial_atcfunix
 
-  !> ???
+  !> @brief Determine max winds, RMW and min SLP in domain
   !>
-  !> @param[inout] Atm ???
-  !> @param[out] min_mslp ???
-  !> @param[out] max_wind ???
-  !> @param[out] rmw ???
-  !> @param[in] max_wind_search_radius ???
-  !> @param[in] min_mlsp_search_radius ???
-  !> @param[in] clon ???
-  !> @param[in] clat ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] its ???
-  !> @param[in] ite ???
-  !> @param[in] jts ???
-  !> @param[in] jte ???
-  !> @param[in] kts ???
-  !> @param[in] kte ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[out] min_mslp Minimum sea level pressure
+  !> @param[out] max_wind Maximum wind speed
+  !> @param[out] rmw Radius maximum winds
+  !> @param[in] max_wind_search_radius Maximum search radius for wind speed
+  !> @param[in] min_mlsp_search_radius Maximum search radius for pressure
+  !> @param[in] clon Center longitude
+  !> @param[in] clat Center latitude
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] its i-coordinate start (patch)
+  !> @param[in] ite i-coordinate end (patch)
+  !> @param[in] jts j-coordinate start (patch)
+  !> @param[in] jte j-coordinate end (patch)
+  !> @param[in] kts k-coordinate start (patch)
+  !> @param[in] kte k-coordinate end (patch)
   !>
   !> @author
   subroutine get_wind_pres_intensity(Atm, &
@@ -1118,41 +1118,41 @@ contains
 
   end subroutine get_wind_pres_intensity
 
-  !> ???
+  !> @brief Determine final center via multiple fields
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] icen ???
-  !> @param[in] jcen ???
-  !> @param[inout] calcparm ???
-  !> @param[in] loncen ???
-  !> @param[in] latcen ???
-  !> @param[in] iguess ???
-  !> @param[in] jguess ???
-  !> @param[in] longuess ???
-  !> @param[in] latguess ???
-  !> @param[inout] ifinal ???
-  !> @param[inout] jfinal ???
-  !> @param[inout] lonfinal ???
-  !> @param[inout] latfinal ???
-  !> @param[in] north_hemi ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] ips ???
-  !> @param[in] ipe ???
-  !> @param[in] jps ???
-  !> @param[in] jpe ???
-  !> @param[in] kps ???
-  !> @param[in] kpe ???
+  !> @param[inout] Atm  Array of atmospheric data
+  !> @param[in] icen Tracker parameter center i grid point
+  !> @param[in] jcen Tracker parameter center j grid point
+  !> @param[inout] calcparm Logical to check if point is valid
+  !> @param[in] loncen Tracker parameter center longitude
+  !> @param[in] latcen Tracker parameter center latitude
+  !> @param[in] iguess Initial guess of i
+  !> @param[in] jguess Initial guess of j
+  !> @param[in] longuess Initial guess for longitude
+  !> @param[in] latguess Initial guess for latitude
+  !> @param[inout] ifinal Final center i grid point location
+  !> @param[inout] jfinal Final center j grid point location
+  !> @param[inout] lonfinal Final center longitude location
+  !> @param[inout] latfinal final center latitude location
+  !> @param[in] north_hemi Logical if location is in northern hemisphere
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] ips i-coordinate start (patch)
+  !> @param[in] ipe i-coordinate end (patch)
+  !> @param[in] jps j-coordinate start (patch)
+  !> @param[in] jpe j-coordinate end (patch)
+  !> @param[in] kps k-coordinate start (patch)
+  !> @param[in] kpe k-coordinate end (patch)
   !>
   !> @author
   subroutine fixcenter(Atm,icen,jcen,calcparm,loncen,latcen, &
@@ -1454,38 +1454,46 @@ contains
 
   end subroutine fixcenter
 
-  !> ???
+  !> @brief Adjust center before looking for min wind speed
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] icen ???
-  !> @param[in] jcen ???
-  !> @param[in] loncen ???
-  !> @param[in] latcen ???
-  !> @param[in] calcparm ???
-  !> @param[in] iguess ???
-  !> @param[in] jguess ???
-  !> @param[in] longuess ???
-  !> @param[in] latguess ???
-  !> @param[inout] iout ???
-  !> @param[inout] jout ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] its ???
-  !> @param[in] ite ???
-  !> @param[in] jts ???
-  !> @param[in] jte ???
-  !> @param[in] kts ???
-  !> @param[in] kte ???
+  !> @details The reason for doing this is
+  !>   to better refine the guess and avoid picking up a wind
+  !>   minimum far away from the center.  So, use the first guess 
+  !>   position (and give it strong weighting), and then also use
+  !>   the fix positions for the current time (give the vorticity
+  !>   centers stronger weighting as well), and then take the
+  !>   average of these positions.
+  !>
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] icen Tracker parameter center i grid point
+  !> @param[in] jcen Tracker parameter center j grid point
+  !> @param[in] loncen Tracker parameter center longitude
+  !> @param[in] latcen Tracker parameter center latitude
+  !> @param[in] calcparm Logical to check if point is valid
+  !> @param[in] iguess Initial guess of i 
+  !> @param[in] jguess Initial guess of j
+  !> @param[in] longuess Initial guess for longitude
+  !> @param[in] latguess Initial guess for latitude
+  !> @param[inout] iout u output of center
+  !> @param[inout] jout v output of center
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] its i-coordinate start (patch)
+  !> @param[in] ite i-coordinate end (patch)
+  !> @param[in] jts j-coordinate start (patch)
+  !> @param[in] jte j-coordinate end (patch)
+  !> @param[in] kts k-coordinate start (patch)
+  !> @param[in] kte k-coordinate end (patch)
   !>
   !> @author
   subroutine get_uv_guess(Atm,icen,jcen,loncen,latcen,calcparm, &
@@ -1562,38 +1570,38 @@ contains
     jout=nint(real(jsum)/real(ict))
   end subroutine get_uv_guess
 
-  !> ???
+  !> @brief Determine center from wind fields
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] orig ???
-  !> @param[inout] iout ???
-  !> @param[inout] jout ???
-  !> @param[inout] rout ???
-  !> @param[inout] calcparm ???
-  !> @param[inout] lonout ???
-  !> @param[inout] latout ???
-  !> @param[in] dxdymean ???
-  !> @param[in] cparm ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] ips ???
-  !> @param[in] ipe ???
-  !> @param[in] jps ???
-  !> @param[in] jpe ???
-  !> @param[in] kps ???
-  !> @param[in] kpe ???
-  !> @param[in] iuvguess ???
-  !> @param[in] juvguess ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] orig Field to search
+  !> @param[inout] iout Output i-coordinate of center
+  !> @param[inout] jout Output j-coordinate of center
+  !> @param[inout] rout Center value
+  !> @param[inout] calcparm Logical if center was found
+  !> @param[inout] lonout Output longitude of center
+  !> @param[inout] latout Output latitude of center
+  !> @param[in] dxdymean Mean grid spacing
+  !> @param[in] cparm Field type
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] its i-coordinate start (patch)
+  !> @param[in] ite i-coordinate end (patch)
+  !> @param[in] jts j-coordinate start (patch)
+  !> @param[in] jte j-coordinate end (patch)
+  !> @param[in] kts k-coordinate start (patch)
+  !> @param[in] kte k-coordinate end (patch)
+  !> @param[in] iuvguess Initial guess of i-coordinate center
+  !> @param[in] juvguess Initial guess of j-coordinate center
   !>
   !> @author
   subroutine get_uv_center(Atm,orig, &
@@ -1672,40 +1680,40 @@ contains
     endif resultif
   end subroutine get_uv_center
 
-  !> ???
+  !> @brief Finds the minimum or maximum value of the field
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] orig ???
-  !> @param[in] srsq ???
-  !> @param[inout] iout ???
-  !> @param[inout] jout ???
-  !> @param[inout] rout ???
-  !> @param[inout] calcparm ???
-  !> @param[inout] lonout ???
-  !> @param[inout] latout ???
-  !> @param[in] dxdymean ???
-  !> @param[in] cparm ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] ips ???
-  !> @param[in] ipe ???
-  !> @param[in] jps ???
-  !> @param[in] jpe ???
-  !> @param[in] kps ???
-  !> @param[in] kpe ???
-  !> @param[in] iuvguess ???
-  !> @param[in] juvguess ???
-  !> @param[in] north_hemi ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] orig Field to search
+  !> @param[in] srsq Square of the maximum radius from domain center to search
+  !> @param[inout] iout Output i-coordinate of center
+  !> @param[inout] jout Output j-coordinate of center
+  !> @param[inout] rout Center value
+  !> @param[inout] calcparm Logical if center was found
+  !> @param[inout] lonout Output longitude of center
+  !> @param[inout] latout Output latitude of center
+  !> @param[in] dxdymean Mean grid spacing
+  !> @param[in] cparm Field type
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] its i-coordinate start (patch)
+  !> @param[in] ite i-coordinate end (patch)
+  !> @param[in] jts j-coordinate start (patch)
+  !> @param[in] jte j-coordinate end (patch)
+  !> @param[in] kts k-coordinate start (patch)
+  !> @param[in] kte k-coordinate end (patch)
+  !> @param[in] iuvguess Initial guess of i-coordinate center
+  !> @param[in] juvguess Initial guess of j-coordinate center
+  !> @param[in] north_hemi Logical if point is in northern hemisphere
   !>
   !> @author
   subroutine find_center(Atm,orig,srsq, &
@@ -1865,27 +1873,27 @@ contains
     endif resultif
   end subroutine find_center
   
-  !> ???
+  !> @brief Calculate distances from domain center to all grid points
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] its ???
-  !> @param[in] ite ???
-  !> @param[in] jts ???
-  !> @param[in] jte ???
-  !> @param[in] kts ???
-  !> @param[in] kte ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] its i-coordinate start (patch)
+  !> @param[in] ite i-coordinate end (patch)
+  !> @param[in] jts j-coordinate start (patch)
+  !> @param[in] jte j-coordinate end (patch)
+  !> @param[in] kts k-coordinate start (patch)
+  !> @param[in] kte k-coordinate end (patch)
   !>
   !> @author
   subroutine get_distsq(Atm, &
@@ -1932,27 +1940,27 @@ contains
 
   end subroutine get_distsq
 
-  !> ???
+  !> @brief Calculate distances from domain center to all grid points
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] its ???
-  !> @param[in] ite ???
-  !> @param[in] jts ???
-  !> @param[in] jte ???
-  !> @param[in] kts ???
-  !> @param[in] kte ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] its i-coordinate start (patch)
+  !> @param[in] ite i-coordinate end (patch)
+  !> @param[in] jts j-coordinate start (patch)
+  !> @param[in] jte j-coordinate end (patch)
+  !> @param[in] kts k-coordinate start (patch)
+  !> @param[in] kte k-coordinate end (patch)
   !>
   !> @author
   subroutine get_tracker_distsq(Atm, &
@@ -2043,12 +2051,12 @@ contains
 
   !> @brief Calculate great circle distance
   !>
-  !> @param[in] rlonb ???
-  !> @param[in] rlatb ???
-  !> @param[in] rlonc ???
-  !> @param[in] rlatc ???
-  !> @param[out] xdist ???
-  !> @param[inout] degrees ???
+  !> @param[in] rlonb Longitude of first point
+  !> @param[in] rlatb Latitude of first point
+  !> @param[in] rlonc Longitude of second point
+  !> @param[in] rlatc Latitude of second point
+  !> @param[out] xdist Calculated great circle distance (km)
+  !> @param[inout] degrees Angular separation
   !>
   !> @author
   subroutine calcdist(rlonb,rlatb,rlonc,rlatc,xdist,degrees)
@@ -2126,30 +2134,30 @@ contains
 
   !> @brief Return latitude and longitude
   !>
-  !> @param[inout] Atm ???
-  !> @param[in] iguess ???
-  !> @param[in] jguess ???
-  !> @param[in] longuess ???
-  !> @param[in] latguess ???
-  !> @param[in] ierr ???
-  !> @param[in] ids ???
-  !> @param[in] ide ???
-  !> @param[in] jds ???
-  !> @param[in] jde ???
-  !> @param[in] kds ???
-  !> @param[in] kde ???
-  !> @param[in] ims ???
-  !> @param[in] ime ???
-  !> @param[in] jms ???
-  !> @param[in] jme ???
-  !> @param[in] kms ???
-  !> @param[in] kme ???
-  !> @param[in] ips ???
-  !> @param[in] ipe ???
-  !> @param[in] jps ???
-  !> @param[in] jpe ???
-  !> @param[in] kps ???
-  !> @param[in] kpe ???
+  !> @param[inout] Atm Array of atmospheric data
+  !> @param[in] iguess Initial guess of i 
+  !> @param[in] jguess Initial guess of j
+  !> @param[in] longuess Initial guess for longitude
+  !> @param[in] latguess Initial guess for latitude
+  !> @param[in] ierr Error code
+  !> @param[in] ids i-coordinate start (domain)
+  !> @param[in] ide i-coordinate end (domain)
+  !> @param[in] jds j-coordinate start (domain)
+  !> @param[in] jde j-coordinate end (domain)
+  !> @param[in] kds k-coordinate start (domain)
+  !> @param[in] kde k-coordinate end (domain)
+  !> @param[in] ims i-coordinate start (memory)
+  !> @param[in] ime i-coordinate end (memory)
+  !> @param[in] jms j-coordinate start (memory)
+  !> @param[in] jme j-coordinate end (memory)
+  !> @param[in] kms k-coordinate start (memory)
+  !> @param[in] kme k-coordinate end (memory)
+  !> @param[in] its i-coordinate start (patch)
+  !> @param[in] ite i-coordinate end (patch)
+  !> @param[in] jts j-coordinate start (patch)
+  !> @param[in] jte j-coordinate end (patch)
+  !> @param[in] kts k-coordinate start (patch)
+  !> @param[in] kte k-coordinate end (patch)
   !>
   !> @author
   subroutine get_lonlat(Atm,iguess,jguess,longuess,latguess,ierr, &
@@ -2250,7 +2258,7 @@ contains
   !> @details This updates the tracker i/j fix location and square of the
   !>  distance to the tracker center after a nest move.
   !>
-  !> @param[inout] Atm ???
+  !> @param[inout] Atm Array of atmospheric data
   !>
   !> @author
   subroutine fv_tracker_post_move(Atm)
@@ -2286,12 +2294,12 @@ contains
   end subroutine fv_tracker_post_move
 
 #ifdef DEBUG
-  !> ???
+  !> @brief Validate paramters for debugging
   !>
-  !> @param[in] cparm ???
-  !> @param[in] v ???
-  !> @param[in] i ???
-  !> @param[in] j ???
+  !> @param[in] cparm Parameter name
+  !> @param[in] v Value
+  !> @param[in] i i-coordinate
+  !> @param[in] j j-coordinate
   !>
   !> @author
   subroutine check_validity(cparm, v, i, j)
