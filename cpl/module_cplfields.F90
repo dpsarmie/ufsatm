@@ -623,7 +623,7 @@ module module_cplfields
   !> @details This subroutine implements a preliminary method to provide 
   !>   metadata to a coupled model that is accessing the field via reference
   !>   sharing (NUOPC SharedStatusField=.true.). The method sets a
-  !>   (key, values) pairin the field's array ESMF_Info object to retrieve 
+  !>   (key, values) pair in the field's array ESMF_Info object to retrieve 
   !>   an array of strings encoding metadata.
   !>   Such a capability should be implemented in the standard NUOPC connector
   !>   for more general applications, possibly providing access to the field's

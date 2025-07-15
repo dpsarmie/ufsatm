@@ -1,6 +1,6 @@
 !> @file
 !> @brief This module contains the the debug subroutines for fv3 coupled run
-!> @author J. Wang
+!> @author Jun Wang
 !>
 !> ## Module History
 !>

@@ -198,7 +198,8 @@ module fv3atm_cap_mod
   end subroutine SetServices
 
 !-----------------------------------------------------------------------------
-  !> @brief The implementation of the Advertise subroutine, which is registered for the label_Advertise specialization. During this phase, all import and export fileds should be advertized.
+  !> @brief The implementation of the Advertise subroutine, which is registered for the label_Advertise specialization. 
+  !> @details During this phase, all import and export fields should be advertized.
   !>
   !> @param[in] gcomp fv3atm grid component
   !> @param[out] rc Return code.
