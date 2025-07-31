@@ -761,8 +761,8 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
     if (mype == 0) write(*,*)'time_init=', date_init,'time=',date,'time_end=',date_end,'dt_atmos=',dt_atmos
     
     call fcst_time_array_setup(Time_init, Time_end, Time_step_restart, &
-                                   Time_restart, num_restart_interval, &
-                                   restart_interval)
+                                   Time_restart, num_restart_fh, &
+                                   restart_fh)
 
 !------ initialize component models ------
 
