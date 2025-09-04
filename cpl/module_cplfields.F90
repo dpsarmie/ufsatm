@@ -160,7 +160,7 @@ module module_cplfields
     FieldInfo("cpl_scalars                              ", "s")]
 
 ! Import Fields ----------------------------------------
-  integer,          public, parameter :: NimportFields = 67 + 3 + 5 !IVAI: add 3 inst_tracer_diag
+  integer,          public, parameter :: NimportFields = 64 !IVAI: add 3 inst_tracer_diag
   logical,          public            :: importFieldsValid(NimportFields)
   type(ESMF_Field), target, public    :: importFields(NimportFields)
 
@@ -184,15 +184,15 @@ module module_cplfields
     FieldInfo("wave_z0_roughness_length                 ", "s"), &
     FieldInfo("inst_tracer_diag_aod                     ", "s"), &
 !IVAI: import canopy fields from AQM component
-    FieldInfo("inst_tracer_diag_claie                   ", "s"), &
-    FieldInfo("inst_tracer_diag_cfch                    ", "s"), &
-    FieldInfo("inst_tracer_diag_cfrt                    ", "s"), &
-    FieldInfo("inst_tracer_diag_cclu                    ", "s"), &
-    FieldInfo("inst_tracer_diag_cpopu                   ", "s"), &
+    !FieldInfo("inst_tracer_diag_claie                   ", "s"), &
+    !FieldInfo("inst_tracer_diag_cfch                    ", "s"), &
+    !FieldInfo("inst_tracer_diag_cfrt                    ", "s"), &
+    !FieldInfo("inst_tracer_diag_cclu                    ", "s"), &
+    !FieldInfo("inst_tracer_diag_cpopu                   ", "s"), &
 !IVAI: import photolysis diagnostics from AQM component
-    FieldInfo("inst_tracer_diag_coszens                 ", "s"), &
-    FieldInfo("inst_tracer_diag_jo3o1d                  ", "s"), &
-    FieldInfo("inst_tracer_diag_jno2                    ", "s"), &
+    !FieldInfo("inst_tracer_diag_coszens                 ", "s"), &
+    !FieldInfo("inst_tracer_diag_jo3o1d                  ", "s"), &
+    !FieldInfo("inst_tracer_diag_jno2                    ", "s"), &
 !IVAI
     FieldInfo("ocn_current_zonal                        ", "s"), &
     FieldInfo("ocn_current_merid                        ", "s"), &
@@ -247,51 +247,50 @@ module module_cplfields
     FieldInfo("snwdph                                   ", "s"), &
     FieldInfo("f10m                                     ", "s"), &
     FieldInfo("zorl                                     ", "s"), &
-    FieldInfo("t2m                                      ", "s"), &
+    FieldInfo("t2m                                      ", "s") ]
 
     ! For FIRE
-    FieldInfo("hflx_fire                                ", "s"), &
-    FieldInfo("evap_fire                                ", "s"), &
-    FieldInfo("smoke_fire                               ", "s") ]
+    !FieldInfo("hflx_fire                                ", "s"), &
+    !FieldInfo("evap_fire                                ", "s"), &
+    !FieldInfo("smoke_fire                               ", "s") ]
 
 ! Fields exported exclusively for coupling with chemistry
   character(*), public, parameter :: chemistryFieldNames(*) = [ &
     "inst_pres_interface             ", &
-    "inst_pres_levels                ", &
-    "inst_geop_interface             ", &
-    "inst_geop_levels                ", &
-    "inst_temp_levels                ", &
-    "inst_zonal_wind_levels          ", &
-    "inst_merid_wind_levels          ", &
-    "inst_tracer_mass_frac           ", &
-    "inst_pbl_height                 ", &
-    "surface_cell_area               ", &
-    "inst_convective_rainfall_amount ", &
-    "inst_friction_velocity          ", &
-    "inst_rainfall_amount            ", &
-    "inst_up_sensi_heat_flx          ", &
-    "inst_surface_roughness          ", &
-    "inst_soil_moisture_content      ", &
-    "inst_liq_nonconv_tendency_levels", &
-    "inst_ice_nonconv_tendency_levels", &
-    "inst_cloud_frac_levels          ", &
-    "inst_surface_soil_wetness       ", &
-    "ice_fraction_in_atm             ", &
-    "lake_fraction                   ", &
-    "ocean_fraction                  ", &
-    "surface_snow_area_fraction      ", &
-    "inst_vegetation_area_frac       ", &
-    "canopy_moisture_storage         ", &
-    "inst_aerodynamic_conductance    ", &
-    "inst_canopy_resistance          ", &
-    "leaf_area_index                 ", &
-    "soil_type                       ", &
-    "temperature_of_soil_layer       ", &
-    "height                          ", &
-    "vegetation_type                 " &
+    "inst_pres_levels                " ]
+    !"inst_geop_interface             ", &
+    !"inst_geop_levels                ", &
+    !"inst_temp_levels                ", &
+    !"inst_zonal_wind_levels          ", &
+    !"inst_merid_wind_levels          ", &
+    !"inst_tracer_mass_frac           ", &
+    !"inst_pbl_height                 ", &
+    !"surface_cell_area               ", &
+    !"inst_convective_rainfall_amount ", &
+    !"inst_friction_velocity          ", &
+    !"inst_rainfall_amount            ", &
+    !"inst_up_sensi_heat_flx          ", &
+    !"inst_surface_roughness          ", &
+    !"inst_soil_moisture_content      ", &
+    !"inst_liq_nonconv_tendency_levels", &
+    !"inst_ice_nonconv_tendency_levels", &
+    !"inst_cloud_frac_levels          ", &
+    !"inst_surface_soil_wetness       ", &
+    !"ice_fraction_in_atm             ", &
+    !"lake_fraction                   ", &
+    !"ocean_fraction                  ", &
+    !"surface_snow_area_fraction      ", &
+    !"inst_vegetation_area_frac       ", &
+    !"canopy_moisture_storage         ", &
+    !"inst_aerodynamic_conductance    ", &
+    !"inst_canopy_resistance          ", &
+    !"leaf_area_index                 ", &
+    !"soil_type                       ", &
+    !"temperature_of_soil_layer       ", &
+    !"height                          ", &
+    !"vegetation_type                 " &
     ! "number_of_vegetation_categories ", &
     ! "fraction_of_vegetation_category "  &
-    ]
 
   ! Methods
   public queryImportFields, queryExportFields
