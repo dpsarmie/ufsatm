@@ -1,7 +1,3 @@
-!> @file
-!> @brief Provides subroutines for grid bounding boxes for moving nest.
-!> @author W. Ramstrom (William.Ramstrom@noaa.gov), AOML/HRD  @date 07/28/2021
-
 !***********************************************************************
 !*                   GNU General Public License                        *
 !* This file is a part of fvGFS.                                       *
@@ -22,6 +18,14 @@
 !* or see:   http://www.gnu.org/licenses/gpl.html                      *
 !***********************************************************************
 
+!***********************************************************************
+!> @file
+!! @brief Provides subroutines for grid bounding boxes for moving nest
+!! @author W. Ramstrom, AOML/HRD  07/28/2021
+!! @email William.Ramstrom@noaa.gov
+!=======================================================================!
+
+
 module bounding_box_mod
   use mpp_domains_mod, only : mpp_get_C2F_index, nest_domain_type
   use mpp_mod,         only : mpp_pe
@@ -36,10 +40,7 @@ module bounding_box_mod
   !> Simple aggregation of the start and end indices of a 2D grid
   !> Makes argument lists clearer to read
   type bbox
-    integer :: is !< starting i-component
-    integer :: ie !< ending i-component
-    integer :: js !< starting j-component
-    integer :: je !< ending j-component
+    integer :: is, ie, js, je
   end type bbox
 
   interface fill_bbox
@@ -52,7 +53,6 @@ module bounding_box_mod
   end interface fill_bbox
 
 contains
-
   !> @brief Create 2d single precision bounding box
   !>
   !> @param[out] out_bbox bounding box output
@@ -144,18 +144,17 @@ contains
     out_bbox%je = ubound(in_grid, 2)
   end subroutine fill_bbox_r8_4d
 
-
   !>@brief This subroutine returns the nest grid indices that correspond to the input nest domain, direction, and position
   !>@details  Simplifies the call signature with the bbox type rather than 4 separate integers
   !>
-  !> Simplifies the call signature with the bbox type rather than 
+  !> Simplifies the call signature with the bbox type rather than
   !> 4 separate integers.
   !> @param[in] nest_domain Nested domain object
   !> @param[out] bbox_fine Fine resolution bounding box (inner)
   !> @param[out] bbox_coarse Coarse resolution bounding box (outer)
-  !> @param[in] direction Mapping direction 
+  !> @param[in] direction Mapping direction
   !> @param[in] position Location
-  !>  
+  !>
   !> @author W. Ramstrom, AOML/HRD  @date 07/28/2021
   subroutine bbox_get_C2F_index(nest_domain, bbox_fine, bbox_coarse, direction,  position)
     implicit none

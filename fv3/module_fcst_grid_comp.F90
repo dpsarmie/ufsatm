@@ -1,3 +1,5 @@
+#define ESMF_ERR_ABORT(rc) \
+if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !> @file
 !> @brief Forecast gridded component
 !>
@@ -7,12 +9,7 @@
 !> Apr 2017:  J. Wang  - initial code for forecast grid component
 !>
 !> @author Jun Wang @date 01/2017
-
-#define ESMF_ERR_ABORT(rc) \
-if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundError(rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-
   module module_fcst_grid_comp
-
   use mpi_f08
   use esmf
   use nuopc
@@ -20,8 +17,8 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
   use time_manager_mod,   only: time_type, set_calendar_type, set_time,    &
                                 set_date, month_name,                      &
                                 operator(+), operator(-), operator (<),    &
-                                operator (>), operator (/=), operator (/), &
-                                operator (==), operator (*),               &
+                                operator(>), operator(/=), operator(/),    &
+                                operator(==), operator(*), operator(<=),   &
                                 THIRTY_DAY_MONTHS, JULIAN, GREGORIAN,      &
                                 NOLEAP, NO_CALENDAR,                       &
                                 date_to_string, get_date, get_time
@@ -77,6 +74,13 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 
   use atmos_model_mod,        only: setup_exportdata
   use CCPP_data,              only: GFS_control
+#ifdef CDEPS_INLINE
+  use module_cdeps_inline,    only: cdeps_stream_init
+  use module_cdeps_inline,    only: cdeps_stream_run
+#endif
+#ifdef UFS_TRACING
+  use ufs_trace_mod
+#endif
 !
 !-----------------------------------------------------------------------
 !
@@ -88,25 +92,24 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
 !---- model defined-types ----
 
-  type(atmos_data_type), save :: Atmos !< Atmospheric data structure
+  type(atmos_data_type), save :: Atmos
 
-  type(ESMF_GridComp),dimension(:),allocatable    :: fcstGridComp !< Array of grid components
-  integer                                         :: ngrids !< Total number of grids
-  integer                                         :: mygrid !< Current grid
+  type(ESMF_GridComp),dimension(:),allocatable    :: fcstGridComp
+  integer                                         :: ngrids, mygrid
 
-  integer                     :: n_atmsteps !< Number of atmospheric time steps
+  integer                     :: n_atmsteps
 
 !----- coupled model data -----
 
-  integer :: calendar_type = -99 !< Calendar type used in the model
-  integer :: date_init(6)        !< Model initialization date and time
-  integer :: numLevels     = 0   !< Number of vertical levels
-  integer :: numSoilLayers = 0   !< Number of soil layers
-  integer :: numTracers    = 0   !< Number of tracers
+  integer :: calendar_type = -99
+  integer :: date_init(6)
+  integer :: numLevels     = 0
+  integer :: numSoilLayers = 0
+  integer :: numTracers    = 0
 
-  integer :: frestart(999)       !< Array of forecast times
+  integer, allocatable :: frestart(:)
 
-  integer :: mype                !<  MPI process ID
+  integer :: mype = -1
 !
 !-----------------------------------------------------------------------
 !
@@ -117,20 +120,30 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief  Register entry points for forecast grid component initialization
 !>
 !> @param[in] fcst_comp Array of grid components
 !> @param[out] rc Return code
 !>
 !> @author
-
   subroutine SetServices(fcst_comp, rc)
 !
     type(ESMF_GridComp)  :: fcst_comp
     integer, intent(out) :: rc
 
+    type(ESMF_VM)               :: vm
+
     rc = ESMF_SUCCESS
+
+    call ESMF_GridCompGet(fcst_comp, vm=vm, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+
+    call ESMF_VMGet(vm, localpet=mype, rc=rc)
+    if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+
+#ifdef UFS_TRACING
+    if (mype == 0) call ufs_trace_init()
+#endif
 
     call ESMF_GridCompSetEntryPoint(fcst_comp, ESMF_METHOD_INITIALIZE, &
                                     userRoutine=fcst_initialize, phase=1, rc=rc)
@@ -159,14 +172,12 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Create grid for nested domain components
 !>
 !> @param[in] nest Array of grid components for the nested domain
 !> @param[out] rc Return code
 !>
 !> @author
-
   subroutine SetServicesNest(nest, rc)
 !
     type(ESMF_GridComp)   :: nest
@@ -327,7 +338,6 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Initialize dynamics for modeled output
 !>
 !> @param[in] nest Array of grid components for the nested domain
@@ -401,7 +411,6 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Initialize physics for modeled output
 !>
 !> @param[in] nest Array of grid components for the nested domain
@@ -470,7 +479,6 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Advertize importable and exportable fields for coupling
 !>
 !> @param[in] nest Array of grid components for the nested domain
@@ -480,7 +488,6 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !> @param[out] rc Return code
 !>
 !> @author
-
   subroutine init_advertise(nest, importState, exportState, clock, rc)
 !
     type(ESMF_GridComp)                    :: nest
@@ -518,7 +525,6 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Allocate or initialize connected coupling fields 
 !>
 !> @param[in] nest Array of grid components for the nested domain
@@ -592,7 +598,6 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Initialize the forecast grid component
 !>
 !> @param[in] fcst_comp Array of grid components
@@ -634,7 +639,7 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 
     character(8) :: bundle_grid
 
-    real(kind=8) :: mpi_wtime, timeis
+    real(kind=8) :: timeis
 
     type(ESMF_DELayout) :: delayout
     type(ESMF_DistGrid) :: distgrid
@@ -654,16 +659,14 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
     logical               :: top_parent_is_global
     logical               :: history_file_on_native_grid
 
-    integer                       :: num_restart_interval, restart_starttime
-    real,dimension(:),allocatable :: restart_interval
+    integer                       :: num_restart_fh
+    real,dimension(:),allocatable :: restart_fh
 
     integer           :: urc
     type(ESMF_State)  :: tempState
     type(ESMF_Info)   :: info
 
-    type(time_type)               :: Time_init, Time, Time_step, Time_end, &
-                                     Time_restart, Time_step_restart
-    type(time_type)               :: iautime
+    type(time_type)               :: Time_init, Time, Time_step, Time_end
     integer                       :: io_unit, calendar_type_res, date_res(6), date_init_res(6)
 
     integer,allocatable           :: grid_number_on_all_pets(:)
@@ -678,6 +681,9 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
     timeis = mpi_wtime()
     rc     = ESMF_SUCCESS
+#ifdef UFS_TRACING
+    if (mype == 0) call ufs_trace("fv3", "fcst_initialize", "B")
+#endif
 !
     call ESMF_VMGetCurrent(vm=vm,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
@@ -693,16 +699,16 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
     call ESMF_ConfigLoadFile(config=CF ,filename='model_configure' ,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
 
-    num_restart_interval = ESMF_ConfigGetLen(config=CF, label ='restart_interval:',rc=rc)
+    num_restart_fh = ESMF_ConfigGetLen(config=CF, label ='restart_interval:',rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-    if (mype == 0) print *,'af ufs config,num_restart_interval=',num_restart_interval
-    if (num_restart_interval<=0) num_restart_interval = 1
-    allocate(restart_interval(num_restart_interval))
-    restart_interval = 0
-    call ESMF_ConfigGetAttribute(CF,valueList=restart_interval,label='restart_interval:', &
-                                 count=num_restart_interval, rc=rc)
+    if (mype == 0) print *,'af ufs config,num_restart_fh=',num_restart_fh
+    if (num_restart_fh<=0) num_restart_fh = 1
+    allocate(restart_fh(num_restart_fh))
+    restart_fh = 0
+    call ESMF_ConfigGetAttribute(CF,valueList=restart_fh,label='restart_interval:', &
+                                 count=num_restart_fh, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
-    if (mype == 0) print *,'af ufs config,restart_interval=',restart_interval
+    if (mype == 0) print *,'af ufs config,restart_fh=',restart_fh
 !
     call fms_init(fcst_mpi_comm%mpi_val)
     call mpp_init()
@@ -819,10 +825,11 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
     Time_step = set_time (dt_atmos,0)
     if (mype == 0) write(*,*)'time_init=', date_init,'time=',date,'time_end=',date_end,'dt_atmos=',dt_atmos
-    
-    call fcst_time_array_setup(Time_init, Time_end, Time_step_restart, &
-                                   Time_restart, num_restart_interval, &
-                                   restart_interval)
+
+    call fcst_time_array_setup(Time_init, Time_end, num_restart_fh, restart_fh)
+
+    ! Set IAU offset time
+    Atmos%iau_offset = iau_offset
 
 !------ initialize component models ------
 
@@ -1177,6 +1184,9 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
 
       if (mype == 0) write(*,*)'fcst_initialize total time: ', mpi_wtime() - timeis
+#ifdef UFS_TRACING
+    if (mype == 0) call ufs_trace("fv3", "fcst_initialize", "E")
+#endif
 !
 !-----------------------------------------------------------------------
 !
@@ -1212,87 +1222,73 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 
    end subroutine fcst_initialize
 
-  !> @brief Create forecast hour time array. 
+  !> @brief Create forecast hour time array.
   !> @details This will be used to dictate when restart files are going to be written.
   !>
-  !> @param[inout] Time_init model initialization time
-  !> @param[inout] Time_end model end time
-  !> @param[inout] Time_step_restart restart time based on restart_interval
-  !> @param[inout] Time_restart calculated restart time
-  !> @param[inout] num_restart_interval user defined restart interval
-  !> @param[inout] restart_interval restart interval, allocatable
+  !> @param[in]    Time_init model initialization time
+  !> @param[in]    Time_end model end time
+  !> @param[in]    num_restart_fh user defined restart interval
+  !> @param[in]    restart_fh restart interval, allocatable
   !>
   !> @author Daniel Sarmiento @date May 16, 2025
-  subroutine fcst_time_array_setup(Time_init, Time_end, Time_step_restart, &
-                                   Time_restart, num_restart_interval, &
-                                   restart_interval)
+  subroutine fcst_time_array_setup(Time_init, Time_end, num_restart_fh, restart_fh)
 
-    type(time_type), intent(inout)                 :: Time_init, Time_end, &
-                                                      Time_step_restart, &
-                                                      Time_restart
-    type(time_type)                                :: iautime
-    integer,         intent(inout)                 :: num_restart_interval
-    integer                                        :: total_inttime, tmpvar, &
-                                                      i, restart_starttime
-    logical                                        :: freq_restart
-    real, dimension(:), allocatable, intent(inout) :: restart_interval
-                                
+    type(time_type), intent(in)                 :: Time_init, Time_end
+    integer,         intent(in)                 :: num_restart_fh
+    real, dimension(:), allocatable, intent(in) :: restart_fh
+
+    ! local variables
+    integer         :: total_inttime, tmpvar, i
+    logical         :: freq_restart
+    type(time_type) :: Time_step_restart, Time_restart
+    integer         :: n_restart
+
     ! set up forecast time array that controls when to write out restart files
-    frestart = 0
-    call get_time(Time_end - Time_init, total_inttime)
-    ! set iau offset time
-    Atmos%iau_offset    = iau_offset
-    if(iau_offset > 0 ) then
-      iautime =  set_time(iau_offset * 3600, 0)
-    endif
+
     ! if the second item is -1, the first number is frequency
     freq_restart = .false.
-    if(num_restart_interval == 2) then
-      if(restart_interval(2)== -1) freq_restart = .true.
+    if(num_restart_fh == 2) then
+      if(restart_fh(2)== -1) freq_restart = .true.
     endif
     if(freq_restart) then
-      if(restart_interval(1) >= 0) then
-        tmpvar = restart_interval(1) * 3600
+      if(restart_fh(1) >= 0) then
+        tmpvar = nint(restart_fh(1) * 3600)
         Time_step_restart = set_time (tmpvar, 0)
-        if(iau_offset > 0 ) then
-          Time_restart = Time_init + iautime + Time_step_restart
-          frestart(1) = tmpvar + iau_offset *3600
-        else
-          Time_restart = Time_init + Time_step_restart
+        Time_restart = Time_init + Time_step_restart
+        if(restart_fh(1) > 0) then
+          n_restart = ( Time_end - Time_init ) / Time_step_restart
+          allocate(frestart(n_restart))
           frestart(1) = tmpvar
-        endif
-        if(restart_interval(1) > 0) then
-          i = 2
-          do while ( Time_restart < Time_end )
+          i = 1
+          do while ( Time_restart + Time_step_restart <= Time_end )
+            i = i + 1
             frestart(i) = frestart(i-1) + tmpvar
             Time_restart = Time_restart + Time_step_restart
-            i = i + 1
           enddo
+        else
+         allocate(frestart(1))
+         frestart(1) = tmpvar
         endif
       endif
     ! otherwise it is an array with forecast time at which the restart files will be written out
-    else if(num_restart_interval >= 1) then
-      if(num_restart_interval == 1 .and. restart_interval(1) == 0 ) then
+    else if(num_restart_fh >= 1) then
+      allocate(frestart(num_restart_fh))
+      if(num_restart_fh == 1 .and. restart_fh(1) == 0 ) then
+        call get_time(Time_end - Time_init, total_inttime)
         frestart(1) = total_inttime
       else
-        if(iau_offset > 0 ) then
-          restart_starttime = iau_offset *3600
-        else
-          restart_starttime = 0
-        endif
-        do i=1,num_restart_interval
-          frestart(i) = restart_interval(i) * 3600. + restart_starttime
+        do i=1,num_restart_fh
+          frestart(i) = nint(restart_fh(i) * 3600.)
         enddo
       endif
     endif
-    ! if to write out restart at the end of forecast
-    if (mype == 0) print *,'frestart=',frestart(1:10)/3600, 'total_inttime=',total_inttime
+
+    if (mype == 0) print *,'frestart=',frestart(1:min(10,size(frestart)))/3600
   end subroutine fcst_time_array_setup
 !
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Advertise coupling fields of forecast grid
 !>
 !> @param[in] fcst_comp Array of grid components
@@ -1323,6 +1319,9 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !***********************************************************************
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+    if (mype == 0) call ufs_trace("fv3", "fcst_advertise", "B")
+#endif
     call ESMF_VMGetCurrent(vm=vm,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
 
@@ -1337,12 +1336,14 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+    if (mype == 0) call ufs_trace("fv3", "fcst_advertise", "E")
+#endif
    end subroutine fcst_advertise
 !
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Realize coupling fields of forecast grid
 !>
 !> @param[in] fcst_comp Array of grid components
@@ -1373,6 +1374,9 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !***********************************************************************
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+    if (mype == 0) call ufs_trace("fv3", "fcst_realize", "B")
+#endif
     call ESMF_VMGetCurrent(vm=vm,rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
 
@@ -1384,16 +1388,26 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
                                  exportState=exportState, phase=4, userrc=urc, rc=rc)
     if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
     if (ESMF_LogFoundError(rcToCheck=urc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__, rcToReturn=rc)) return
+
+#ifdef CDEPS_INLINE
+    ! --- call cdeps inline initialization -------------------
+    if (GFS_control%use_cdeps_inline) then
+       call cdeps_stream_init(fcstGridComp(cpl_grid_id), clock, rc)
+       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+    end if
+#endif
 !
 !
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+    if (mype == 0) call ufs_trace("fv3", "fcst_realize", "E")
+#endif
    end subroutine fcst_realize
 !
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Execute first phase of forecast timestep
 !> @details Executes dynamics, radiation, and physics
 !>
@@ -1421,12 +1435,15 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
       integer,save               :: dt_cap=0
       type(ESMF_Time)            :: currTime,stopTime
       integer                    :: seconds
-      real(kind=8)               :: mpi_wtime, tbeg1
+      real(kind=8)               :: tbeg1
 !
 !-----------------------------------------------------------------------
 !***********************************************************************
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+      if (mype == 0) call ufs_trace("fv3", "fcst_run_phase_1", "B")
+#endif
       tbeg1 = mpi_wtime()
       rc    = ESMF_SUCCESS
 !
@@ -1452,6 +1469,16 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
       endif
 !
 !-----------------------------------------------------------------------
+! *** call cdeps inline
+
+#ifdef CDEPS_INLINE
+    if (GFS_control%use_cdeps_inline) then
+       call cdeps_stream_run(clock, rc)
+       if (ESMF_LogFoundError(rcToCheck=rc, msg=ESMF_LOGERR_PASSTHRU, line=__LINE__, file=__FILE__)) return
+    end if
+#endif
+!
+!-----------------------------------------------------------------------
 ! *** call fcst integration subroutines
 
       call update_atmos_model_dynamics (Atmos)
@@ -1466,12 +1493,14 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+      if (mype == 0) call ufs_trace("fv3", "fcst_run_phase_1", "E")
+#endif
    end subroutine fcst_run_phase_1
 !
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Execute second phase of forecast timestep
 !> @details Completes integrations and handle restart if needed
 !>
@@ -1498,7 +1527,7 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
       integer                    :: date(6), seconds
       character(len=64)          :: timestamp
       integer                    :: unit
-      real(kind=8)               :: mpi_wtime, tbeg1
+      real(kind=8)               :: tbeg1
 !
       integer                                :: FBCount, i
       logical                                :: isPresent
@@ -1509,6 +1538,9 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !***********************************************************************
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+      if (mype == 0) call ufs_trace("fv3", "fcst_run_phase_2", "B")
+#endif
       tbeg1 = mpi_wtime()
       rc    = ESMF_SUCCESS
 !
@@ -1585,12 +1617,14 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+      if (mype == 0) call ufs_trace("fv3", "fcst_run_phase_2", "E")
+#endif
    end subroutine fcst_run_phase_2
 !
 !-----------------------------------------------------------------------
 !#######################################################################
 !-----------------------------------------------------------------------
-!
 !> @brief Clean up variables and finish forecast grid steps
 !>
 !> @param[in] fcst_comp Array of grid components
@@ -1615,12 +1649,15 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
       integer                    :: unit
       integer,dimension(6)       :: date
-      real(kind=8)               :: mpi_wtime, tbeg1
+      real(kind=8)               :: tbeg1
 !
 !-----------------------------------------------------------------------
 !***********************************************************************
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+      if (mype == 0) call ufs_trace("fv3", "fcst_finalize", "B")
+#endif
       tbeg1 = mpi_wtime()
       rc    = ESMF_SUCCESS
 
@@ -1634,10 +1671,12 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
 !
 !-----------------------------------------------------------------------
 !
+#ifdef UFS_TRACING
+      if (mype == 0) call ufs_trace("fv3", "fcst_finalize", "E")
+#endif
   end subroutine fcst_finalize
 !
 !#######################################################################
-!
 !> @brief Write forecast grid to NetCDF file for diagnostics
 !>
 !> @param[in] grid  ESMF grid object type
