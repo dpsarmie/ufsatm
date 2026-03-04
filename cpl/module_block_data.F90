@@ -1290,7 +1290,7 @@ contains
     if (present(rc)) rc = localrc
 
   end subroutine block_copy_2d_r4_to_2d_r8
-I
+
   !> @brief Block array data copy 2D r4 to 2D ESMF R8
   !>
   !> @param[in] destin_ptr Destination pointer
