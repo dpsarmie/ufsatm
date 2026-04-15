@@ -233,8 +233,8 @@ module ufsatm_cap_mod
     integer                                :: noutput_fh, nfh, nfh2
     integer                                :: petcount
     integer                                :: nfhmax_hf
-    real                                   :: nfhmax
-    real                                   :: output_startfh, outputfh, outputfh2(2)
+    real(8)                                   :: nfhmax
+    real(8)                                   :: output_startfh, outputfh, outputfh2(2)
     logical                                :: loutput_fh, lfreq
     character(ESMF_MAXSTR)                 :: gc_name, fb_name
     integer,dimension(:), allocatable      :: petList, originPetList, targetPetList
@@ -1297,7 +1297,7 @@ module ufsatm_cap_mod
   !> @author Daniel Sarmiento @date May 16, 2025
   subroutine OutputHours_FrequencyInput(nfhmax, output_startfh, outputfh2)
     integer                   :: nfh, i
-    real, intent(inout)       :: nfhmax, output_startfh, outputfh2(2)
+    real(8), intent(inout)       :: nfhmax, output_startfh, outputfh2(2)
 
     nfh = 0
     if( nfhmax>output_startfh) nfh = nint((nfhmax-output_startfh)/outputfh2(1)) + 1
@@ -1327,7 +1327,7 @@ module ufsatm_cap_mod
 
     integer                   :: ist, i
     integer, intent(inout)    :: noutput_fh
-    real, intent(inout)       :: output_startfh
+    real(8), intent(inout)       :: output_startfh
 
     if( output_startfh == 0) then
       ! If the output time in output_fh array contains first time stamp output,

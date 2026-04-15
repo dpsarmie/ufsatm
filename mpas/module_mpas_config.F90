@@ -42,7 +42,7 @@ module module_mpas_config
   !> Output frequency if this array has only two elements and the value of
   !! the second eletment is -1. Otherwise, it is the specific output forecast
   !! hours
-  real,dimension(:),allocatable :: output_fh
+  real(8),dimension(:),allocatable :: output_fh
 
   !> Calendar type
   character(17)            :: calendar='                 '

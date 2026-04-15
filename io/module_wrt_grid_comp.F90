@@ -1760,7 +1760,7 @@
      real(kind=8)  :: wbeg,wend
 
      logical                               :: use_parallel_netcdf
-     real, allocatable                     :: output_fh(:)
+     real(8), allocatable                     :: output_fh(:)
      logical                               :: is_restart_bundle, restart_written
      logical                               :: lupp_history, lrestart
      integer                               :: tileCount
