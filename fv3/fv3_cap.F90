@@ -192,8 +192,8 @@ module fv3atm_cap_mod
     integer                                :: noutput_fh, nfh, nfh2
     integer                                :: petcount
     integer                                :: nfhmax_hf
-    real                                   :: nfhmax
-    real                                   :: output_startfh, outputfh, outputfh2(2)
+    real(8)                                   :: nfhmax
+    real(8)                                   :: output_startfh, outputfh, outputfh2(2)
     logical                                :: loutput_fh, lfreq
     character(ESMF_MAXSTR)                 :: gc_name, fb_name
     integer,dimension(:), allocatable      :: petList, originPetList, targetPetList
