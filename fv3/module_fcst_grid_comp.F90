@@ -105,7 +105,7 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
   integer :: numSoilLayers = 0
   integer :: numTracers    = 0
 
-  integer :: frestart(999)
+  integer :: frestart(9999)
 
   integer :: mype
 !

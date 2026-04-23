@@ -79,7 +79,7 @@ module fv3atm_cap_mod
 
   integer                                     :: mype = -1
   integer                                     :: dbug = 0
-  integer                                     :: frestart(999) = -1
+  integer                                     :: frestart(9999) = -1
 
   real(kind=8)                                :: timere, timep2re
 !-----------------------------------------------------------------------

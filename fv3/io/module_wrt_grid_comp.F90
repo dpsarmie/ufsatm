@@ -73,7 +73,7 @@
       integer,save      :: idate(7), start_time(7)
       logical,save      :: write_nsflip
       logical,save      :: change_wrtidate=.false.
-      integer,save      :: frestart(999) = -1
+      integer,save      :: frestart(9999) = -1
       integer,save      :: calendar_type = 3
       logical           :: lprnt
 !
