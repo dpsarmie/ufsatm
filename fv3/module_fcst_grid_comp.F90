@@ -804,7 +804,7 @@ if (rc /= ESMF_SUCCESS) write(0,*) 'rc=',rc,__FILE__,__LINE__; if(ESMF_LogFoundE
           restart_starttime = 0
         endif
         do i=1,num_restart_interval
-          frestart(i) = restart_interval(i) * 3600. + restart_starttime
+          frestart(i) = restart_interval(i) * 3600.0d0 + restart_starttime
         enddo
       endif
     endif
